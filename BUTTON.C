@@ -40,16 +40,19 @@ void	FPPA0 (void)
     PAPH		=		_FIELD(p_InA_OD, p_InA_V);
     PBPH		=		_FIELD(p_InB_H);
     
-	$ T16M		IHRC, /1, BIT11;			//	16MHz / 1 = 16MHz : the time base of T16.
-//	$ T16M		IHRC, /1, BIT10;			//	16MHz / 1 = 16MHz : the time base of T16.
+	$ T16M		IHRC, /64, BIT11;			// 2us
+//	$ T16M		IHRC, /1, BIT11;			// 256us
+//	$ T16M		IHRC, /1, BIT10;			// 128us
 	$ TM2C		IHRC, Disable, Period, Inverse;
 
 	BYTE	Key_Flag;
 	Key_Flag			=	_FIELD(p_InA_OD, p_InA_VJ, p_InA_V, p_InB_H, p_InA_QV2, p_InB_QV3);
 
 	BYTE	Sys_Flag	=	0;
-	BIT		f_mode2			:	Sys_Flag.0;
-	BIT		f_od_switch_on	:	Sys_Flag.1;
+	BIT		f_mode2				:	Sys_Flag.0;
+	BIT		f_od_switch_on		:	Sys_Flag.1;// OD switch status
+	BIT		f_Trig_lpress_OD	:	Sys_Flag.2;// OD long press
+	BIT		f_Trig_spress_OD	:	Sys_Flag.3;// OD short press
 	
 	BYTE	Sys_FlagA	=	0;
 	BIT		t16_10ms	:	Sys_FlagA.1;
@@ -88,14 +91,11 @@ void	FPPA0 (void)
 //	BYTE    last_vj_state = 8;
 	BYTE    last_vj_state = 1;
 
-	BYTE	cnt_Key_10ms_1	=	4;				//	Key debounce time = 40 mS
-	BYTE	cnt_Key_10ms_3	=	4;				//	Key debounce time = 40 mS
-	BYTE	cnt_Key_10ms_4	=	4;				//	Key debounce time = 40 mS
-	
-	BYTE	cnt_Key_10ms_3_mode2	=	250;				//	Key debounce time = 40 mS
-	BYTE	cnt_Key_10ms_4_mode2	=	250;				//	Key debounce time = 40 mS
+	// for long press
+	BYTE	debounce_time_lpress_OD		=	250;				// Key debounce time = 250 ms
+	BYTE	debounce_time_lpress_V		=	250;				// Key debounce time = 250 mS
+	BYTE	debounce_time_lpress_H		=	250;				// Key debounce time = 250 mS
 
-	BYTE	cnt_3s_time_1 	= 0;// 
 	BYTE	cnt_3s_time_4 	= 0;// CN1/H
 	BYTE	cnt_3s_time_2k 	= 0;// 2KHz
 	BYTE	cnt_3s_time_led = 19;// 1Hz
@@ -261,228 +261,209 @@ void	FPPA0 (void)
 				}
 			}	
 
-//			else if (250 == cnt_3s_time_startup) {
-//			if (1 == start) {
 			if (1) {
 				if (t16_10ms) {
-					// port change detect(both H->L and L->H)
-					A	=	(PA ^ Key_Flag) & _FIELD(p_InA_OD);	//	only check the bit of p_Key_In.
-					if (! ZF)
-					{										//	if is not same,
+					A =	(PA ^ Key_Flag) & _FIELD(p_InA_OD);
+					if (! ZF) {
 						// Active: H->L
 						if (!p_InA_OD) {
-							if (--cnt_Key_10ms_1 == 0)
-							{									//	and over debounce time.
-								Key_flag	^=	_FIELD(p_InA_OD);
-								
+							if (--debounce_time_lpress_OD == 0) {
+								Key_flag ^=	_FIELD(p_InA_OD);
 								if (f_od_switch_on) {
-									f_od_switch_on = 0;
-									
-									p_OutB_V1 = 0;
-									p_OutB_V2 = 0;
-									p_OutA_V3 = 0;
-									p_OutB_H1 = 0;
-									
-									count1 = 1;
-									count_l = 0;
-									count_h = 0;
-									
-									Sys_FlagA = 0;
-									Sys_FlagB = 0;
-									Sys_FlagC = 0;
-									Sys_FlagD = 0;
-									
-//									last_vj_state = 8;
-									last_vj_state = 1;								
-									
-									cnt_Key_10ms_1	=	4;				
-									cnt_Key_10ms_3	=	4;				
-									cnt_Key_10ms_4	=	4;				
-									
-									cnt_Key_10ms_3_mode2	=	250;	
-									cnt_Key_10ms_4_mode2	=	250;	
-									
-									cnt_3s_time_1 	= 0;// 
-									cnt_3s_time_4 	= 0;// CN1/H
-									cnt_3s_time_2k 	= 0;// 2KHz
-									cnt_3s_time_led = 19;// 1Hz
-									
-									stepx = 0;
-									start = 0;
-									
-									cnt_3s_time_startup = 0;
-									
-									p_OutB_LED = 0;
-								} else {
-									f_od_switch_on = 1;
+									f_Trig_lpress_OD = 1;
 								}
-								
-								f_2k_on = 1;
+								debounce_time_lpress_OD = 250;
 							}
-						} else {
-							Key_flag	^=	_FIELD(p_InA_OD);
+						} else {// Up: H->L
+							Key_flag ^=	_FIELD(p_InA_OD);
 						}
 					} else {
-						cnt_Key_10ms_1	=	4;
+						if (debounce_time_lpress_OD < 245) {
+							Key_flag ^= FIELD(p_InA_OD);
+							f_Trig_spress_OD = 1;// short push
+						}
+						debounce_time_lpress_OD = 250;
 					}
 				}
-					
+
+				// short press -> enable / disable other buttons
+				if (f_Trig_spress_OD) {
+					f_Trig_spress_OD = 0;
+
+					if (f_od_switch_on) {
+						f_od_switch_on = 0;
+									
+						// TBD: disable PWM
+
+						p_OutB_V1 = 0;
+						p_OutB_V2 = 0;
+						p_OutA_V3 = 0;
+						p_OutB_H1 = 0;
+									
+						count1 = 1;
+						count_l = 0;
+						count_h = 0;
+									
+						Sys_FlagA = 0;
+						Sys_FlagB = 0;
+						Sys_FlagC = 0;
+						Sys_FlagD = 0;
+									
+//						last_vj_state = 8;
+						last_vj_state = 1;								
+									
+						debounce_time_lpress_OD	=	250;	
+						debounce_time_lpress_V	=	250;	
+						debounce_time_lpress_H	=	250;	
+									
+						cnt_3s_time_4 	= 0;// CN1/H
+						cnt_3s_time_2k 	= 0;// 2KHz
+						cnt_3s_time_led = 19;// 1Hz
+									
+						stepx = 0;
+						start = 0;
+									
+						cnt_3s_time_startup = 0;
+									
+						p_OutB_LED = 0;
+					} else {
+						f_od_switch_on = 1;
+					}
+								
+					f_2k_on = 1;
+				}
+
+				// long press -> switch laser mode
+				if (f_Trig_lpress_OD) {
+					f_Trig_lpress_OD = 0;
+
+					if (f_mode2) {
+						f_mode2 = 0;
+					} else {
+						f_mode2 = 1;
+					}
+				}
+			
 				if ((f_od_switch_on) && (1 == start)) {
 					if (t16_10ms) {
-						A	=	(PA ^ Key_flag/*_mode2*/) & _FIELD(p_InA_V);	//	only check the bit of p_Key_In.
-						if (! ZF)
-						{										//	if is not same,
+						A = (PA ^ Key_flag) & _FIELD(p_InA_V);
+						if (! ZF) {
 							// Active: H->L
 							if (!p_InA_V) {
-								if (--cnt_Key_10ms_3_mode2 == 0)
-								{									//	and over debounce time.
-									Key_flag/*_mode2*/	^=	_FIELD(p_InA_V);
-									//f_Key_Trig3_mode2	=	1;				//	so Trigger, when stable at 30 mS.
-									cnt_Key_10ms_3_mode2 = 250;
+								if (--debounce_time_lpress_V == 0) {
+									Key_flag ^=	_FIELD(p_InA_V);
+									debounce_time_lpress_V = 250;
 								}
 							} else {// Up: H->L
-								Key_flag/*_mode2*/	^=	_FIELD(p_InA_V);
+								Key_flag ^=	_FIELD(p_InA_V);
 							}
 						} else {
-							if (cnt_Key_10ms_3_mode2 < 245) {
-								Key_flag/*_mode2*/	^=	_FIELD(p_InA_V);
+							if (debounce_time_lpress_V < 245) {
+								Key_flag ^=	_FIELD(p_InA_V);
 								f_Key_Trig3 = 1;// short push
 							}
-							cnt_Key_10ms_3_mode2 = 250;
+							debounce_time_lpress_V = 250;
 						}
                     	
-						A	=	(PB ^ Key_flag/*_mode2*/) & _FIELD(p_InB_H);	//	only check the bit of p_Key_In.
-						if (! ZF)
-						{										//	if is not same,
+						A = (PB ^ Key_flag) & _FIELD(p_InB_H);
+						if (! ZF) {
 							// Active: H->L
 							if (!p_InB_H) {
-								if (--cnt_Key_10ms_4_mode2 == 0)
-								{									//	and over debounce time.
-									Key_flag/*_mode2*/	^=	_FIELD(p_InB_H);
-									//f_Key_Trig4_mode2	=	1;				//	so Trigger, when stable at 30 mS.
-									cnt_Key_10ms_4_mode2 = 250;
+								if (--debounce_time_lpress_H == 0) {
+									Key_flag ^=	_FIELD(p_InB_H);
+									debounce_time_lpress_H = 250;
 								}
 							} else {// Up: H->L
-								Key_flag/*_mode2*/	^=	_FIELD(p_InB_H);
+								Key_flag ^=	_FIELD(p_InB_H);
 							}
 						} else {
-							if (cnt_Key_10ms_4_mode2 < 245) {
-								Key_flag/*_mode2*/	^=	_FIELD(p_InB_H);
+							if (debounce_time_lpress_H < 245) {
+								Key_flag ^=	_FIELD(p_InB_H);
 								f_Key_Trig4 = 1;// short push
 							}
-							cnt_Key_10ms_4_mode2 = 250;
+							debounce_time_lpress_H = 250;
 						}	
                     }
 
-					//if (f_Key_Trig2)// VJ
-					if (1)
-					{					
-						//p_OutB_LED = 1;
-						//f_Key_Trig2 = 0;
-
-						// Normal Mode
-						if (0 == cnt_3s_time_1) {
-							// Down: L->H
-							if (p_InA_VJ) {// L-H is special mode
-								if ((0 == last_vj_state) && (cnt_3s_time_led == 19)) {
-//									f_2k_on = 1;
-									f_vj_on = 1;
-									f_led_flash = 1;
-									f_vj_low2high = 1;
+					if (p_InA_VJ) {// H is special mode
+						if ((0 == last_vj_state) && (cnt_3s_time_led == 19)) {
+							f_vj_on = 1;
+							f_led_flash = 1;
+							f_vj_low2high = 1;
+						}
+						if ((last_vj_state != 1) && (cnt_3s_time_led == 19)) {
+							last_vj_state = 1;
 									
-									// Enable Timer2 PWM to 2KHz
-//									tm2ct = 0x0;
-//									tm2b = 0b0111_1100;// 124
-//									//tm2s = 0b000_01111;// 15
-//									tm2s = 0b000_00111;// 7
-//									tm2c = 0b0001_1000;// CLK(=IHRC/2) | PA3 | Period | Disable Inverse
-								}
-								if ((last_vj_state != 1) && (cnt_3s_time_led == 19)) {
-									last_vj_state = 1;
-									
-									// Disable all 100HZ PWM
-									p_OutB_V1	=	0;
-									p_OutB_V2	=	0;
-									p_OutA_V3   =   0;
-									p_OutB_H1	=	0;
-									
-									if (f_V1_on) {
-										f_last_V1_on = 1;
-									} else {
-										f_last_V1_on = 0;
-									}
-									
-									if (f_V2_on) {
-										f_last_V2_on = 1;
-									} else {
-										f_last_V2_on = 0;
-									}
-									
-									if (f_H1_on) {
-										f_last_H1_on = 1;
-									} else {
-										f_last_H1_on = 0;
-									}
-									
-									if (f_V3_on) {
-										f_last_V3_on = 1;
-									} else {
-										f_last_V3_on = 0;
-									}
-									
-									f_V1_on = 0;
-									f_V2_on = 0;
-									f_H1_on = 0;
-									f_V3_on = 0;
-									
-//									// Enable Timer2 PWM to 2KHz
-//									tm2ct = 0x0;
-//									tm2b = 0b0111_1100;// 124
-//									//tm2s = 0b000_01111;// 15
-//									tm2s = 0b000_00111;// 7
-//									tm2c = 0b0001_1000;// CLK(=IHRC/2) | PA3 | Period | Disable Inverse
-								}
+							// Disable all 100HZ PWM
+							p_OutB_V1	=	0;
+							p_OutB_V2	=	0;
+							p_OutA_V3   =   0;
+							p_OutB_H1	=	0;
+							
+							if (f_V1_on) {
+								f_last_V1_on = 1;
 							} else {
-								if ((last_vj_state != 0) && (cnt_3s_time_led == 19)) {
-									last_vj_state = 0;
-									
-									f_vj_on = 0;
-									f_led_flash = 0;
-									f_vj_low2high = 0;
-									
-									// Disable Timer2 PWM
-//									tm2c = 0b0000_0000;// IHRC | PA3 | Period | Disable Inverse
-//									p_OutB_LED = 1;
-									
-									if (f_last_V1_on) {
-										if (!f_mode2) {
-											p_OutB_V1	=	1;
-										}
-										
-										f_V1_on = 1;
-									}
-									if (f_last_V2_on) {
-										if (!f_mode2) {
-											p_OutB_V2	=	1;
-										}
-										
-										f_V2_on = 1;
-									}
-									if (f_last_H1_on) {
-										if (!f_mode2) {
-											p_OutB_H1	=	1;
-										}
-										
-										f_H1_on = 1;
-									}
-									if (f_last_V3_on) {
-										if (!f_mode2) {
-											p_OutA_V3	=	1;
-										}
-										
-										f_V3_on = 1;
-									}
+								f_last_V1_on = 0;
+							}
+								
+							if (f_V2_on) {
+								f_last_V2_on = 1;
+							} else {
+								f_last_V2_on = 0;
+							}
+								
+							if (f_H1_on) {
+								f_last_H1_on = 1;
+							} else {
+								f_last_H1_on = 0;
+							}
+								
+							if (f_V3_on) {
+								f_last_V3_on = 1;
+							} else {
+								f_last_V3_on = 0;
+							}
+								
+							f_V1_on = 0;
+							f_V2_on = 0;
+							f_H1_on = 0;
+							f_V3_on = 0;
+						}
+					} else {
+						if ((last_vj_state != 0) && (cnt_3s_time_led == 19)) {
+							last_vj_state = 0;
+							
+							f_vj_on = 0;
+							f_led_flash = 0;
+							f_vj_low2high = 0;
+							
+							if (f_last_V1_on) {
+								if (!f_mode2) {
+									p_OutB_V1	=	1;
 								}
+									
+								f_V1_on = 1;
+							}
+							if (f_last_V2_on) {
+								if (!f_mode2) {
+									p_OutB_V2	=	1;
+								}
+									
+								f_V2_on = 1;
+							}
+							if (f_last_H1_on) {
+								if (!f_mode2) {
+									p_OutB_H1	=	1;
+								}
+									
+								f_H1_on = 1;
+							}
+							if (f_last_V3_on) {
+								if (!f_mode2) {
+									p_OutA_V3	=	1;
+								}
+										
+								f_V3_on = 1;
 							}
 						}
 					}
@@ -652,7 +633,7 @@ void	FPPA0 (void)
 					cnt_3s_time_2k = 0;
 					// Disable Timer2 PWM
 					tm2c = 0b0000_0000;// IHRC | PA3 | Period | Disable Inverse
-		               p_OutA_2K	=	0;
+		            p_OutA_2K	=	0;
 				}
 			}
 
