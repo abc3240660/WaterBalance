@@ -1,5 +1,13 @@
 #include	"extern.h"
 
+//#define USE_5K 1
+#define USE_10K 1
+
+void pwm_freq_set_2K(void);
+void pwmg2_enable_2K_50(void);
+void pwmg2_disable(void);
+void tm2_enable();
+
 BIT		p_InA_OD	:	PA.4;
 BIT		p_InA_VJ	:	PA.5;
 BIT		p_InA_V	    :	PA.7;
@@ -40,7 +48,7 @@ void	FPPA0 (void)
     PAPH		=		_FIELD(p_InA_OD, p_InA_V);
     PBPH		=		_FIELD(p_InB_H);
     
-	$ T16M		IHRC, /64, BIT11;			// 2us
+//	$ T16M		IHRC, /1, BIT8;				// 32us
 //	$ T16M		IHRC, /1, BIT11;			// 256us
 //	$ T16M		IHRC, /1, BIT10;			// 128us
 	$ TM2C		IHRC, Disable, Period, Inverse;
@@ -85,9 +93,10 @@ void	FPPA0 (void)
 //	pmode	Program_Mode;
 //	fppen	=	0xFF;
 
-	BYTE	count1 = 1;
+	BYTE	count_128us = 1;
+	BYTE	count_1ms = 1;
+	BYTE	count_10ms = 1;
 	BYTE	count_l = 0;
-	BYTE	count_h = 0;
 //	BYTE    last_vj_state = 8;
 	BYTE    last_vj_state = 1;
 
@@ -109,31 +118,34 @@ void	FPPA0 (void)
 
 	while (1)
 	{
-		if (INTRQ.T16)
-		{
-			INTRQ.T16		=	0;
-			t_128us         =   1;
-			If (--count1 == 0)					//	DZSN  count
-			{
-//				count1		=	78;				//	128uS * 78 = 10 mS 
-				count1		=	39;				//	128uS * 78 = 10 mS 				
-				t16_10ms	=	1;
+		if (INTRQ.6) {// TM2 Interrupt 100KHz (=10us)
+			INTRQ.6		=	0;
+
+			if (--count_1ms == 0) {
+				count_1ms		=	100;				// 10us * 100 = 1 ms
+
+				if (--count_10ms == 0) {
+					count_10ms		=	10;				// 1ms * 10 = 10 ms
+					t16_10ms	=	1;
+				}
 			}
 
-            // 1->78
+			if (--count_128us == 0) {
+					count_128us		=	13;				// 10us * 13 = 130 us
+					t_128us         =   1;
+			}
+
+            // 1->10
             count_l++;
             
-            if (100 == count_l) {
+            if (12 == count_l) {
                 count_l = 0;
-                count_h++;
-                if (100 == count_h)
-                    count_h = 0;
 			}
 		}
 
 		if (f_od_switch_on) {
 			if (f_mode2) {
-				if ((1 == count_l)&&(0 == count_h)) {
+				if (1 == count_l) {
 					if (f_V1_on) {
 						p_OutB_V1 = 1;
 					}
@@ -142,7 +154,7 @@ void	FPPA0 (void)
 					}
 	                p_OutB_H1 = 0;
 	                p_OutB_V2 = 0;
-	            } else if ((40 == count_l)&&(0 == count_h)) {
+	            } else if (6 == count_l) {
 					p_OutB_V1 = 0;
 					p_OutA_V3 = 0;
 					if (f_V2_on) {
@@ -151,9 +163,8 @@ void	FPPA0 (void)
 					if (f_H1_on) {
 						p_OutB_H1 = 1;
 					}
-				} else if ((78 == count_l)&&(0 == count_h)) {
+				} else if (10 == count_l) {
 					count_l = 0;
-					count_h = 0;
 				}
 			}
 		}
@@ -300,9 +311,7 @@ void	FPPA0 (void)
 						p_OutA_V3 = 0;
 						p_OutB_H1 = 0;
 									
-						count1 = 1;
 						count_l = 0;
-						count_h = 0;
 									
 						Sys_FlagA = 0;
 						Sys_FlagB = 0;
@@ -641,4 +650,43 @@ void	FPPA0 (void)
 			break;
 		}
 	}
+}
+
+// PWMG0/1/2 Share the same Freq but different duty ratio
+// Setting PWM's Freq to 2KHz
+// Fpwm_freq = Fpwm_clk / (CB + 1) = 4M/8/250 = 2KHz
+// [6:4]: 000-1,  001-2,  010-4,  011-8,  
+//        100-16, 101-32, 110-64, 111-128
+void pwm_freq_set_2K(void)
+{
+	pwmgcubl = 0b0100_0000;
+	pwmgcubh = 0b0011_1110;// CB = {pwmgcubh[7:0], pwmgcubl[7:6]} = 249
+	
+	pwmgclk = 0b1011_0000;// Fpwm_clk = = SYSCLK / 8
+}
+
+// Enable PWMG2 Output with 50% duty ratio at 2kHz
+void pwmg2_enable_2K_50(void)
+{
+	pwmg2dtl = 0b0010_0000;// DB0 = pwmg0dtl[5] = 1
+	pwmg2dth = 0b0001_1111;// DB10_1 = {pwmg0dth[7:0], pwmg0dtl[7:6]}
+
+	// Fpwm_duty = [DB10_1 + DB0*0.5 + 0.5] / (CB + 1) = (DB10_1 + 1) / 250
+	pwmg2c = 0b0000_0110;// PA3 PWM
+}
+
+// Disable PWMG2
+void pwmg2_disable(void)
+{
+	pwmg2c = 0b0000_0000;// do not output PWM
+}
+
+// Enable Timer2 PWM to 50KHz -> Interrupt = 100KHz(one period have 2 interrupt)
+// freq = Fsrc / 2 / (K+1) / S1 / (S2+1) = 4M / 2 / 1 / 4 / 10 = 50KHz
+void tm2_enable()
+{
+	tm2ct = 0x0;
+	tm2b = 0b0000_0000;// K
+    tm2s = 0b0_01_01001;// S1=^-^[6:5]=(01->4), S2=[4:0]=9
+	tm2c = 0b0001_0000;// CLK(=IHRC/4) | Disable Output | Period | Disable Inverse
 }
