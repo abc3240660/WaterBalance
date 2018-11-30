@@ -64,7 +64,6 @@ void	FPPA0 (void)
 	
 	BYTE	Sys_FlagA	=	0;
 	BIT		t16_10ms	:	Sys_FlagA.1;
-	BIT		f_Key_Trig2	:	Sys_FlagA.2;
 	BIT		f_Key_Trig3	:	Sys_FlagA.3;
 	BIT		f_Key_Trig4	:	Sys_FlagA.4;
     BIT		f_IN_QV2	:	Sys_FlagA.5;
@@ -113,7 +112,8 @@ void	FPPA0 (void)
     BYTE	start = 0;
     BYTE	mid_val = 6;
     BYTE	end_val = 10;
-    
+    BYTE	end_val_cmp = 12;
+
 	f_mode2 = 0;
 	f_2k_on = 0;
 
@@ -126,6 +126,8 @@ void	FPPA0 (void)
 	mid_val = 11;
 	end_val = 20;
 #endif
+
+	end_val_cmp = end_val + 2;
 
 	// Enable 50KHz to be the basement to timing control 100KHz
 	tm2_enable_50K();
@@ -152,7 +154,7 @@ void	FPPA0 (void)
             // 1->end_val
             count_l++;
 
-            if ((end_val+2) == count_l) {
+            if (end_val_cmp == count_l) {
                 count_l = 0;
 			}
 		}
@@ -300,10 +302,9 @@ void	FPPA0 (void)
 					}
 				} else {
 					if (debounce_time_lpress_OD < 245) {
-						Key_flag ^= FIELD(p_InA_OD);
+						Key_flag ^=	_FIELD(p_InA_OD);
 						f_Trig_spress_OD = 1;// short push
 					}
-
 					debounce_time_lpress_OD = 250;
 				}
 
