@@ -48,6 +48,7 @@ void	FPPA0 (void)
     PAPH		=		_FIELD(p_InA_OD, p_InA_V);
     PBPH		=		_FIELD(p_InB_H);
     
+	$ T16M		IHRC, /4, BIT8;
 //	$ T16M		IHRC, /1, BIT8;				// 32us
 //	$ T16M		IHRC, /1, BIT11;			// 256us
 //	$ T16M		IHRC, /1, BIT10;			// 128us
@@ -113,7 +114,16 @@ void	FPPA0 (void)
     BYTE	mid_val = 6;
     BYTE	end_val = 10;
     BYTE	end_val_cmp = 12;
-
+	
+	// TM16 Period = 256us -> produce 50us Interrupt
+	// 65536 - 52736 =  12800
+	// 12800 / 65536 = 25/128
+	// 50us / 256us = 25/128
+	//WORD	count	=	52735;
+	
+	WORD	count	=	56;
+	stt16	count;
+	
 	f_mode2 = 0;
 	f_2k_on = 0;
 
@@ -130,15 +140,16 @@ void	FPPA0 (void)
 	end_val_cmp = end_val + 2;
 
 	// Enable 50KHz to be the basement to timing control 100KHz
-	tm2_enable_50K();
+	// tm2_enable_50K();
 
 	while (1)
 	{
-		if (INTRQ.6) {// TM2 Interrupt 100KHz (=10us)
-			INTRQ.6		=	0;
-
+		if (INTRQ.T16) {// TM16 Interrupt 20KHz (=50us)
+			INTRQ.T16		=	0;
+			stt16	count;
+			
 			if (--count_1ms == 0) {
-				count_1ms		=	100;				// 10us * 100 = 1 ms
+				count_1ms		=	20;				// 50us * 20 = 1 ms
 
 				if (--count_10ms == 0) {
 					count_10ms		=	10;				// 1ms * 10 = 10 ms
@@ -147,21 +158,48 @@ void	FPPA0 (void)
 			}
 
 			if (--count_128us == 0) {
-					count_128us		=	13;				// 10us * 13 = 130 us
-					t_128us         =   1;
+				count_128us		=	3;				// 50us * 3 = 150 us
+				t_128us         =   1;
 			}
 
             // 1->end_val
-            count_l++;
+            //count_l++;
 
-            if (end_val_cmp == count_l) {
-                count_l = 0;
+            //if (end_val_cmp == count_l) {
+            //    count_l = 0;
+			//}
+			
+			if (0 == count_l) {
+				count_l = 1;
+			} else {
+				count_l = 0;
 			}
 		}
 
-		// time period 100KHz(=10us)
+		// time period 20KHz(=50us)
 		if (f_od_switch_on) {
 			if (f_mode2) {
+#if 1
+				if (1 == count_l) {
+					if (f_V1_on) {
+						p_OutB_V1 = 1;
+					}
+					if (f_V3_on) {
+						p_OutA_V3 = 1;
+					}
+					p_OutB_H1 = 0;
+					p_OutB_V2 = 0;
+				} else {
+					p_OutB_V1 = 0;
+					p_OutA_V3 = 0;
+					if (f_V2_on) {
+						p_OutB_V2 = 1;
+					}
+					if (f_H1_on) {
+						p_OutB_H1 = 1;
+					}
+				}
+#else
 				if (1 == count_l) {
 					if (f_V1_on) {
 						p_OutB_V1 = 1;
@@ -183,6 +221,7 @@ void	FPPA0 (void)
 				} else if (end_val == count_l) {
 					count_l = 0;
 				}
+#endif
 			}
 		}
 
