@@ -26,7 +26,7 @@ BIT		p_OutB_LED	:	PB.7;// LED
 
 void	FPPA0 (void)
 {
-	.ADJUST_IC	SYSCLK=IHRC/4		//	SYSCLK=IHRC/4
+	.ADJUST_IC	SYSCLK=IHRC/2		//	SYSCLK=IHRC/4
     
     $ EOSCR		DIS_LVD_BANDGAP;
 
@@ -100,7 +100,7 @@ void	FPPA0 (void)
 	BYTE    last_vj_state = 1;
 
 	// for long press
-	BYTE	debounce_time_lpress_OD		=	250;				// Key debounce time = 250 ms
+	BYTE	debounce_time_lpress_OD		=	130;				// Key debounce time = 250 ms
 	BYTE	debounce_time_lpress_V		=	250;				// Key debounce time = 250 mS
 	BYTE	debounce_time_lpress_H		=	250;				// Key debounce time = 250 mS
 
@@ -334,17 +334,17 @@ void	FPPA0 (void)
 							if (f_od_switch_on) {
 								f_Trig_lpress_OD = 1;
 							}
-							debounce_time_lpress_OD = 250;
+							debounce_time_lpress_OD = 130;
 						}
 					} else {// Up: H->L
 						Key_flag ^=	_FIELD(p_InA_OD);
 					}
 				} else {
-					if (debounce_time_lpress_OD < 245) {
+					if (debounce_time_lpress_OD < 125) {
 						Key_flag ^=	_FIELD(p_InA_OD);
 						f_Trig_spress_OD = 1;// short push
 					}
-					debounce_time_lpress_OD = 250;
+					debounce_time_lpress_OD = 130;
 				}
 
 				if ((f_Trig_spress_OD) || (f_Trig_lpress_OD)) {
@@ -363,7 +363,7 @@ void	FPPA0 (void)
 					// long press -> switch laser mode
 					if (f_Trig_lpress_OD) {
 						f_Trig_lpress_OD = 0;
-						f_rst_all_flag = 1;
+						//f_rst_all_flag = 1;
 
 						if (f_mode2) {
 							f_mode2 = 0;
@@ -390,7 +390,7 @@ void	FPPA0 (void)
 //						last_vj_state = 8;
 						last_vj_state = 1;								
 									
-						debounce_time_lpress_OD	=	250;	
+						debounce_time_lpress_OD	=	130;	
 						debounce_time_lpress_V	=	250;	
 						debounce_time_lpress_H	=	250;	
 									
@@ -713,6 +713,7 @@ void	FPPA0 (void)
 // PWMG0/1/2 Share the same Freq but different duty ratio
 // Setting PWM's Freq to 2KHz
 // Fpwm_freq = Fpwm_clk / (CB + 1) = 4M/8/250 = 2KHz
+// Fpwm_freq = Fpwm_clk / (CB + 1) = 8M/16/250 = 2KHz
 // [6:4]: 000-1,  001-2,  010-4,  011-8,  
 //        100-16, 101-32, 110-64, 111-128
 void pwmgx_enable_2K(void)
@@ -720,7 +721,8 @@ void pwmgx_enable_2K(void)
 	pwmgcubl = 0b0100_0000;
 	pwmgcubh = 0b0011_1110;// CB = {pwmgcubh[7:0], pwmgcubl[7:6]} = 249
 	
-	pwmgclk = 0b1011_0000;// Fpwm_clk = = SYSCLK / 8
+	//pwmgclk = 0b1011_0000;// Fpwm_clk = = SYSCLK / 8 = 4M/8
+	pwmgclk = 0b1100_0000;// Fpwm_clk = = SYSCLK / 16 = 8M/16
 }
 
 // Enable PWMG2 Output with 50% duty ratio at 2kHz
