@@ -367,6 +367,26 @@ void	FPPA0 (void)
 
 						if (f_mode2) {
 							f_mode2 = 0;
+							if (f_V1_on) {
+								p_OutB_V1 = 1;
+							} else {
+								p_OutB_V1 = 0;
+							}
+							if (f_V2_on) {
+								p_OutB_V2 = 1;
+							} else {
+								p_OutB_V2 = 0;
+							}
+							if (f_V3_on) {
+								p_OutA_V3 = 1;
+							} else {
+								p_OutA_V3 = 0;
+							}
+							if (f_H1_on) {
+								p_OutB_H1 = 1;
+							} else {
+								p_OutB_H1 = 0;
+							}
 						} else {
 							f_mode2 = 1;
 						}
