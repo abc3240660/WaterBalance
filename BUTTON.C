@@ -356,6 +356,7 @@ void	FPPA0 (void)
 							f_od_switch_on = 0;
 							f_rst_all_flag = 1;
 						} else {
+							f_mode2 = 0;
 							f_od_switch_on = 1;
 						}
 					}
