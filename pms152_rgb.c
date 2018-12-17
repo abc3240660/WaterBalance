@@ -257,8 +257,8 @@ void FPPA0(void)
 			}
 
 			if (1 == mode_In3) {
-				if ((count_l >= 0) && (count_l < 100)) {
-					if (0 == count_l) {
+				if ((count_l >= 1) && (count_l < 100)) {
+					if (1 == count_l) {
 						pwm_freq_set();
 
 						pwmg0_disable();
