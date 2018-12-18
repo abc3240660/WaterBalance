@@ -1,6 +1,6 @@
 #include	"extern.h"
 
-#define FOR_DEBUG_USE1 1
+//#define FOR_DEBUG_USE1 1
 //#define FOR_DEBUG_USE2 1
 
 // LED changing time
@@ -8,16 +8,20 @@
 // LED stable time
 #define LED_NON_CHG_TM 63 // 63*16ms = 1s
 
-static BYTE duty_ratio_l;
-static BYTE duty_ratio_h;
-static BYTE duty_ratio_lx;
-static BYTE duty_ratio_hx;
+static BYTE duty_ratio_l_pin8;
+static BYTE duty_ratio_h_pin8;
+static BYTE duty_ratio_l_pin9;
+static BYTE duty_ratio_h_pin9;
+static BYTE duty_ratio_l_pin10;
+static BYTE duty_ratio_h_pin10;
 
 static void pwm_freq_set(void);
-static void duty_ratio_adding(void);
-static void duty_ratio_deling(void);
-static void duty_ratio_addingX(void);
-static void duty_ratio_delingX(void);
+static void duty_ratio_adding_pin8(void);
+static void duty_ratio_deling_pin8(void);
+static void duty_ratio_adding_pin9(void);
+static void duty_ratio_deling_pin9(void);
+static void duty_ratio_adding_pin10(void);
+static void duty_ratio_deling_pin10(void);
 static void pwmg0_enable(void);
 static void pwmg0_disable(void);
 static void pwmg1_enable(void);
@@ -60,10 +64,12 @@ void FPPA0(void)
 	pbdier = 0b0111_1111;// disable digital input for PB7
 
 	// Insert Initial Code
-	duty_ratio_l = 0;
-	duty_ratio_h = 0;
-	duty_ratio_lx = 0;
-	duty_ratio_hx = 0;
+	duty_ratio_l_pin8 = 0;
+	duty_ratio_h_pin8 = 0;
+	duty_ratio_l_pin9 = 0;
+	duty_ratio_h_pin9 = 0;
+	duty_ratio_l_pin10 = 0;
+	duty_ratio_h_pin10 = 0;
 	
 	BYTE	Key_FlagA;
 	BYTE	Key_FlagB;
@@ -89,7 +95,7 @@ void FPPA0(void)
 	BYTE	count_10ms	= 1;
 	BYTE	count_16ms	= 1;
 	BYTE	count_one_sec 	= 0;
-	WORD	count_l = 0;
+	WORD	count_l = 1;
 	BYTE	in3_disable_cnt	= 0;
 	BYTE	sub_mode_In3 	= 0;
 	BYTE	sub_mode_In3_last 	= 8;
@@ -194,7 +200,7 @@ void FPPA0(void)
 					sub_mode_In3 = 0;
 					sub_mode_In3_last = 8;
 					
-					count_l = 0;
+					count_l = 1;
 					
 					f_In6_lock = 1;// lock
 				} else {// locking
@@ -256,153 +262,129 @@ void FPPA0(void)
 				continue;
 			}
 
+			// PWM RatioDuty = ((0~249)+1) / 250
+			// PINX: Max 100%
+			// 		 62*4 + 1 = 249
+			// 		 (249+1) / 250 = 100%
+			// PINX: Min 0.4%
+			// 		 0*4 + 0 = 0
+			// 		 (0+1) / 250 = 0.4%
 			if (1 == mode_In3) {
 				if ((count_l >= 1) && (count_l < 100)) {
 					if (1 == count_l) {
 						pwm_freq_set();
 
-						pwmg0_disable();
-						pwmg1_disable();
-						pwmg2_disable();
-
-						p_Out8 = 0;
-						p_Out9 = 0;
-						p_Out10 = 0;
-
 						// PIN8: 100
-						duty_ratio_l = 1;
-						duty_ratio_h = 62;
+						duty_ratio_l_pin8 = 1;
+						duty_ratio_h_pin8 = 62;
 
 						pwmg0_enable();	
 					} else {
+						// Last PIN8: 100(ratio=249)
+
 						// PIN8 Always ON(=100%)
 					}
-				} else if ((count_l >= 100) && (count_l < 340)) {
+				} else if ((count_l >= 100) && (count_l < 350)) {
 					if (100 == count_l) {
-						// PIN9: 0~100
-						duty_ratio_lx = 0;
-						duty_ratio_hx = 0;
+						// Last PIN8: 100(ratio=249)
+
+						// PIN9: 0.4(ratio=0)
+						duty_ratio_l_pin9 = 0;
+						duty_ratio_h_pin9 = 0;
 
 						pwmg1_enable();	
-					} else {
-						// duty_ratio_l/h for PIN8: 100~0
-						duty_ratio_deling();
-						// duty_ratio_lx/hx for PIN9: 0~100
-						duty_ratio_addingX();
+					} else {// loop 101->349 = 249
+						// Last PIN8: 100(ratio=249)
+						// Last PIN9: 0(ratio=0)
+
+						// PIN8: 100~0.4(ratio=249--, 249~0)
+						duty_ratio_deling_pin8();
+						// PIN9: 0.4~100(ratio=0++, 0~249)
+						duty_ratio_adding_pin9();
 
 						pwmg0_enable();	
 						pwmg1_enable();	
 					}
-				} else if ((count_l >= 340) && (count_l < 440)) {
-					if (340 == count_l) {
-						pwmg0_disable();
+				} else if ((count_l >= 350) && (count_l < 450)) {
+					// Last PIN8: 0.4(ratio=0)
+					// Last PIN9: 100(ratio=249)
 
-						p_Out8 = 0;
+					// PIN9 Always ON(=100%)
+				} else if ((count_l >= 450) && (count_l < 700)) {
+					if (450 == count_l) {
+						// Last PIN8: 0.4(ratio=0)
+						// Last PIN9: 100(ratio=249)
 
-						// PIN9: 100
-						duty_ratio_lx = 1;
-						duty_ratio_hx = 62;
-
-						pwmg1_enable();	
-					} else {
-						// PIN9 Always ON(=100%)
-					}
-				} else if ((count_l >= 440) && (count_l < 680)) {
-					if (440 == count_l) {
-						// PIN10: 0~100
-						duty_ratio_l = 0;
-						duty_ratio_h = 0;
+						// PIN10: 0.4
+						duty_ratio_l_pin10 = 0;
+						duty_ratio_h_pin10 = 0;
 
 						pwmg2_enable();	
-					} else {
-						// duty_ratio_lx/hx for PIN9: 100~0
-						duty_ratio_delingX();
-						// duty_ratio_l/h for PIN10: 0~100
-						duty_ratio_adding();
+					} else {// loop 451->699 = 249
+						// Last PIN8: 0.4(ratio=0)
+						// Last PIN9: 100(ratio=249)
+						// Last PIN10: 0.4(ratio=0)
+
+						// PIN9: 100~0.4(ratio=249--, 249~0)
+						duty_ratio_deling_pin9();
+						// PIN10: 0.4~100(ratio=0++, 0~249)
+						duty_ratio_adding_pin10();
 
 						pwmg1_enable();	
 						pwmg2_enable();	
 					}
-				} else if ((count_l >= 680) && (count_l < 780)) {
-					if (680 == count_l) {
-						pwmg1_disable();
+				} else if ((count_l >= 700) && (count_l < 800)) {
+					// Last PIN8: 0.4(ratio=0)
+					// Last PIN9: 0.4(ratio=0)
+					// Last PIN10: 100(ratio=249)
 
-						p_Out9 = 0;
+					// PIN10 Always ON(=100%)
+				} else if ((count_l >= 800) && (count_l < 1050)) {
+					if (800 == count_l) {
+						// Last PIN8: 0.4(ratio=0)
+						// Last PIN9: 0.4(ratio=0)
+						// Last PIN10: 100(ratio=249)
+					} else {// loop 801->1049 = 249
+						// Last PIN8: 0.4(ratio=0)
+						// Last PIN9: 0.4(ratio=0)
+						// Last PIN10: 100(ratio=249)
 
-						// PIN10: 100
-						duty_ratio_l = 1;
-						duty_ratio_h = 62;
-
-						pwmg2_enable();	
-					} else {
-						// PIN10 Always ON(=100%)
-					}
-				} else if ((count_l >= 780) && (count_l < 1020)) {
-					if (780 == count_l) {
-						// PIN10 Always ON, disbale PWMG2
-						pwmg2_disable();
-
-						p_Out10 = 1;
-
-						// PIN8: 0~100
-						duty_ratio_l = 0;
-						duty_ratio_h = 0;
-
-						// PIN9: 0~100
-						duty_ratio_lx = 0;
-						duty_ratio_hx = 0;
-
-						pwmg0_enable();	
-						pwmg1_enable();	
-					} else {
-						// duty_ratio_l/h for PIN8: 0~100
-						duty_ratio_adding();
-						// duty_ratio_lx/hx for PIN9: 0~100
-						duty_ratio_addingX();
+						// PIN8: 0.4~100(ratio=0++, 0~249)
+						duty_ratio_adding_pin8();
+						// PIN9: 0.4~100(ratio=0++, 0~249)
+						duty_ratio_adding_pin9();
 
 						pwmg0_enable();	
 						pwmg1_enable();	
 					}
-				} else if ((count_l >= 1020) && (count_l < 1025)) {
-					if (1020 == count_l) {
-						// PIN8/9/10 Always ON, disbale PWMG0/1/2
-						pwmg0_disable();
-						pwmg1_disable();
-						pwmg2_disable();
+				} else if ((count_l >= 1050) && (count_l < 1100)) {
+					// Last PIN8: 100(ratio=249)
+					// Last PIN9: 100(ratio=249)
+					// Last PIN10: 100(ratio=249)
 
-						p_Out8 = 1;
-						p_Out9 = 1;
-						p_Out10 = 1;
-					} else {
-					}
-				} else if ((count_l >= 1025) && (count_l < 1265)) {
-					if (1025 == count_l) {
-						// PIN9: 100~0
-						duty_ratio_lx = 1;
-						duty_ratio_hx = 62;
-
-						// PIN10: 100~0
-						duty_ratio_l = 1;
-						duty_ratio_h = 62;
-
-						pwmg1_enable();	
-						pwmg2_enable();	
-					} else {
-						// duty_ratio_lx/hx for PIN9: 100~0
-						duty_ratio_delingX();
-						// duty_ratio_l/h for PIN10: 100~0
-						duty_ratio_deling();
+					// PIN8/9/10 Always ON(=100%)
+				} else if ((count_l >= 1100) && (count_l < 1350)) {
+					if (1100 == count_l) {
+						// Last PIN8: 100(ratio=249)
+						// Last PIN9: 100(ratio=249)
+						// Last PIN10: 100(ratio=249)
+					} else {// loop 1101->1350 = 249
+						// PIN9: 100~0.4(ratio=249--, 249~0)
+						duty_ratio_deling_pin9();
+						// PIN10: 100~0.4(ratio=249--, 249~0)
+						duty_ratio_deling_pin10();
 
 						pwmg1_enable();	
 						pwmg2_enable();	
 					}
-				} else if (count_l >= 1265) {
-					count_l = 0;
                 }
 
 	            count_l++;
+				if (count_l >= 1350) {
+					count_l = 1;
+				}
 			} else {
-				count_l = 0;
+				count_l = 1;
 				sub_mode_In3 = 0;
 				sub_mode_In3_last = 8;
 			}
@@ -421,96 +403,134 @@ void pwm_freq_set(void)
 }
 
 // 249 ~ 0 -> duty = (250 ~ 1) / 250
-void duty_ratio_deling(void)
+void duty_ratio_deling_pin8(void)
 {
 	BYTE duty_ratio = 0;
 
-	if ((0 == duty_ratio_l) && (0 == duty_ratio_h)) {
+	if ((0 == duty_ratio_l_pin8) && (0 == duty_ratio_h_pin8)) {
 		return;
 	}
 
-	if (duty_ratio_l > 0) {
-		duty_ratio_l--;
+	if (duty_ratio_l_pin8 > 0) {
+		duty_ratio_l_pin8--;
 	} else {
-		duty_ratio_l = 3;
-		if (duty_ratio_h > 0) {
-			duty_ratio_h--;
+		duty_ratio_l_pin8 = 3;
+		if (duty_ratio_h_pin8 > 0) {
+			duty_ratio_h_pin8--;
 		}
 	}
 }
 
 // 0 ~ 249 -> duty = (1 ~ 250) / 250
-void duty_ratio_adding(void)
+void duty_ratio_adding_pin8(void)
 {
 	BYTE duty_ratio = 0;
 
-	duty_ratio = duty_ratio_h + duty_ratio_h + duty_ratio_h + duty_ratio_h + duty_ratio_l;
+	duty_ratio = duty_ratio_h_pin8 + duty_ratio_h_pin8 + duty_ratio_h_pin8 + duty_ratio_h_pin8 + duty_ratio_l_pin8;
 
 	if (249 == duty_ratio) {
 		return;
 	}
 
-	if (duty_ratio_l < 3) {
-		duty_ratio_l++;
+	if (duty_ratio_l_pin8 < 3) {
+		duty_ratio_l_pin8++;
 	} else {
-		duty_ratio_l = 0;
-		duty_ratio_h++;
+		duty_ratio_l_pin8 = 0;
+		duty_ratio_h_pin8++;
 	}
 }
 
 // 249 ~ 0 -> duty = (250 ~ 1) / 250
-void duty_ratio_delingX(void)
+void duty_ratio_deling_pin9(void)
 {
 	BYTE duty_ratio = 0;
 
-	if ((0 == duty_ratio_lx) && (0 == duty_ratio_hx)) {
+	if ((0 == duty_ratio_l_pin9) && (0 == duty_ratio_h_pin9)) {
 		return;
 	}
 
-	if (duty_ratio_lx > 0) {
-		duty_ratio_lx--;
+	if (duty_ratio_l_pin9 > 0) {
+		duty_ratio_l_pin9--;
 	} else {
-		duty_ratio_lx = 3;
-		if (duty_ratio_hx > 0) {
-			duty_ratio_hx--;
+		duty_ratio_l_pin9 = 3;
+		if (duty_ratio_h_pin9 > 0) {
+			duty_ratio_h_pin9--;
 		}
 	}
 }
 
 // 0 ~ 249 -> duty = (1 ~ 250) / 250
-void duty_ratio_addingX(void)
+void duty_ratio_adding_pin9(void)
 {
 	BYTE duty_ratio = 0;
 
-	duty_ratio = duty_ratio_hx + duty_ratio_hx + duty_ratio_hx + duty_ratio_hx + duty_ratio_lx;
+	duty_ratio = duty_ratio_h_pin9 + duty_ratio_h_pin9 + duty_ratio_h_pin9 + duty_ratio_h_pin9 + duty_ratio_l_pin9;
 
 	if (249 == duty_ratio) {
 		return;
 	}
 
-	if (duty_ratio_lx < 3) {
-		duty_ratio_lx++;
+	if (duty_ratio_l_pin9 < 3) {
+		duty_ratio_l_pin9++;
 	} else {
-		duty_ratio_lx = 0;
-		duty_ratio_hx++;
+		duty_ratio_l_pin9 = 0;
+		duty_ratio_h_pin9++;
+	}
+}
+
+// 249 ~ 0 -> duty = (250 ~ 1) / 250
+void duty_ratio_deling_pin10(void)
+{
+	BYTE duty_ratio = 0;
+
+	if ((0 == duty_ratio_l_pin10) && (0 == duty_ratio_h_pin10)) {
+		return;
+	}
+
+	if (duty_ratio_l_pin10 > 0) {
+		duty_ratio_l_pin10--;
+	} else {
+		duty_ratio_l_pin10 = 3;
+		if (duty_ratio_h_pin10 > 0) {
+			duty_ratio_h_pin10--;
+		}
+	}
+}
+
+// 0 ~ 249 -> duty = (1 ~ 250) / 250
+void duty_ratio_adding_pin10(void)
+{
+	BYTE duty_ratio = 0;
+
+	duty_ratio = duty_ratio_h_pin10 + duty_ratio_h_pin10 + duty_ratio_h_pin10 + duty_ratio_h_pin10 + duty_ratio_l_pin10;
+
+	if (249 == duty_ratio) {
+		return;
+	}
+
+	if (duty_ratio_l_pin10 < 3) {
+		duty_ratio_l_pin10++;
+	} else {
+		duty_ratio_l_pin10 = 0;
+		duty_ratio_h_pin10++;
 	}
 }
 
 // Enable PWMG0 Output with X% duty ratio
 void pwmg0_enable(void)
 {
-	if (0 == duty_ratio_l) {
+	if (0 == duty_ratio_l_pin8) {
 		pwmg0dtl = 0b10_0000;// DB0 = pwmg0dtl[5] = 1
-		pwmg0dth = duty_ratio_h;// DB10_1 = {pwmg0dth[7:0], pwmg0dtl[7:6]}
-	} else if (1 == duty_ratio_l) {
+		pwmg0dth = duty_ratio_h_pin8;// DB10_1 = {pwmg0dth[7:0], pwmg0dtl[7:6]}
+	} else if (1 == duty_ratio_l_pin8) {
 		pwmg0dtl = 64 + 0b10_0000;// DB0 = pwmg0dtl[5] = 1
-		pwmg0dth = duty_ratio_h;// DB10_1 = {pwmg0dth[7:0], pwmg0dtl[7:6]}
-	} else if (2 == duty_ratio_l) {
+		pwmg0dth = duty_ratio_h_pin8;// DB10_1 = {pwmg0dth[7:0], pwmg0dtl[7:6]}
+	} else if (2 == duty_ratio_l_pin8) {
 		pwmg0dtl = 128 + 0b10_0000;// DB0 = pwmg0dtl[5] = 1
-		pwmg0dth = duty_ratio_h;// DB10_1 = {pwmg0dth[7:0], pwmg0dtl[7:6]}
-	} else if (3 == duty_ratio_l) {
+		pwmg0dth = duty_ratio_h_pin8;// DB10_1 = {pwmg0dth[7:0], pwmg0dtl[7:6]}
+	} else if (3 == duty_ratio_l_pin8) {
 		pwmg0dtl = 192 + 0b10_0000;// DB0 = pwmg0dtl[5] = 1
-		pwmg0dth = duty_ratio_h;// DB10_1 = {pwmg0dth[7:0], pwmg0dtl[7:6]}
+		pwmg0dth = duty_ratio_h_pin8;// DB10_1 = {pwmg0dth[7:0], pwmg0dtl[7:6]}
 	}
 
 	// Fpwm_duty = [DB10_1 + DB0*0.5 + 0.5] / (CB + 1) = (DB10_1 + 1) / 250
@@ -526,18 +546,18 @@ void pwmg0_disable(void)
 // Enable PWMG1 Output with X% duty ratio
 void pwmg1_enable(void)
 {
-	if (0 == duty_ratio_lx) {
+	if (0 == duty_ratio_l_pin9) {
 		pwmg1dtl = 0b10_0000;// DB0 = pwmg1dtl[5] = 1
-		pwmg1dth = duty_ratio_hx;// DB10_1 = {pwmg1dth[7:0], pwmg1dtl[7:6]}
-	} else if (1 == duty_ratio_lx) {
+		pwmg1dth = duty_ratio_h_pin9;// DB10_1 = {pwmg1dth[7:0], pwmg1dtl[7:6]}
+	} else if (1 == duty_ratio_l_pin9) {
 		pwmg1dtl = 64 + 0b10_0000;// DB0 = pwmg1dtl[5] = 1
-		pwmg1dth = duty_ratio_hx;// DB10_1 = {pwmg1dth[7:0], pwmg1dtl[7:6]}
-	} else if (2 == duty_ratio_lx) {
+		pwmg1dth = duty_ratio_h_pin9;// DB10_1 = {pwmg1dth[7:0], pwmg1dtl[7:6]}
+	} else if (2 == duty_ratio_l_pin9) {
 		pwmg1dtl = 128 + 0b10_0000;// DB0 = pwmg1dtl[5] = 1
-		pwmg1dth = duty_ratio_hx;// DB10_1 = {pwmg1dth[7:0], pwmg1dtl[7:6]}
-	} else if (3 == duty_ratio_lx) {
+		pwmg1dth = duty_ratio_h_pin9;// DB10_1 = {pwmg1dth[7:0], pwmg1dtl[7:6]}
+	} else if (3 == duty_ratio_l_pin9) {
 		pwmg1dtl = 192 + 0b10_0000;// DB0 = pwmg1dtl[5] = 1
-		pwmg1dth = duty_ratio_hx;// DB10_1 = {pwmg1dth[7:0], pwmg1dtl[7:6]}
+		pwmg1dth = duty_ratio_h_pin9;// DB10_1 = {pwmg1dth[7:0], pwmg1dtl[7:6]}
 	}
 
 	// Fpwm_duty = [DB10_1 + DB0*0.5 + 0.5] / (CB + 1) = (DB10_1 + 1) / 250
@@ -553,18 +573,18 @@ void pwmg1_disable(void)
 // Enable PWMG1 Output with X% duty ratio
 void pwmg2_enable(void)
 {
-	if (0 == duty_ratio_l) {
+	if (0 == duty_ratio_l_pin10) {
 		pwmg2dtl = 0b10_0000;// DB0 = pwmg2dtl[5] = 1
-		pwmg2dth = duty_ratio_h;// DB10_1 = {pwmg2dth[7:0], pwmg2dtl[7:6]}
-	} else if (1 == duty_ratio_l) {
+		pwmg2dth = duty_ratio_h_pin10;// DB10_1 = {pwmg2dth[7:0], pwmg2dtl[7:6]}
+	} else if (1 == duty_ratio_l_pin10) {
 		pwmg2dtl = 64 + 0b10_0000;// DB0 = pwmg2dtl[5] = 1
-		pwmg2dth = duty_ratio_h;// DB10_1 = {pwmg2dth[7:0], pwmg2dtl[7:6]}
-	} else if (2 == duty_ratio_l) {
+		pwmg2dth = duty_ratio_h_pin10;// DB10_1 = {pwmg2dth[7:0], pwmg2dtl[7:6]}
+	} else if (2 == duty_ratio_l_pin10) {
 		pwmg2dtl = 128 + 0b10_0000;// DB0 = pwmg2dtl[5] = 1
-		pwmg2dth = duty_ratio_h;// DB10_1 = {pwmg2dth[7:0], pwmg2dtl[7:6]}
-	} else if (3 == duty_ratio_l) {
+		pwmg2dth = duty_ratio_h_pin10;// DB10_1 = {pwmg2dth[7:0], pwmg2dtl[7:6]}
+	} else if (3 == duty_ratio_l_pin10) {
 		pwmg2dtl = 192 + 0b10_0000;// DB0 = pwmg2dtl[5] = 1
-		pwmg2dth = duty_ratio_h;// DB10_1 = {pwmg2dth[7:0], pwmg2dtl[7:6]}
+		pwmg2dth = duty_ratio_h_pin10;// DB10_1 = {pwmg2dth[7:0], pwmg2dtl[7:6]}
 	}
 
 	// Fpwm_duty = [DB10_1 + DB0*0.5 + 0.5] / (CB + 1) = (DB10_1 + 1) / 250
