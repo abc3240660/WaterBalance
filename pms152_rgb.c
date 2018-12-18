@@ -23,10 +23,13 @@ static void duty_ratio_deling_pin9(void);
 static void duty_ratio_adding_pin10(void);
 static void duty_ratio_deling_pin10(void);
 static void pwmg0_enable(void);
+static void pwmg0_update_ratio(void);
 static void pwmg0_disable(void);
 static void pwmg1_enable(void);
+static void pwmg1_update_ratio(void);
 static void pwmg1_disable(void);
 static void pwmg2_enable(void);
+static void pwmg2_update_ratio(void);
 static void pwmg2_disable(void);
 
 BIT p_In2	:	PB.6;// Power Charge Input(0-charging, 1-non-charging)
@@ -302,8 +305,8 @@ void FPPA0(void)
 						// PIN9: 0.4~100(ratio=0++, 0~249)
 						duty_ratio_adding_pin9();
 
-						pwmg0_enable();	
-						pwmg1_enable();	
+						pwmg0_update_ratio();	
+						pwmg1_update_ratio();	
 					}
 				} else if ((count_l >= 350) && (count_l < 450)) {
 					// Last PIN8: 0.4(ratio=0)
@@ -330,8 +333,8 @@ void FPPA0(void)
 						// PIN10: 0.4~100(ratio=0++, 0~249)
 						duty_ratio_adding_pin10();
 
-						pwmg1_enable();	
-						pwmg2_enable();	
+						pwmg1_update_ratio();	
+						pwmg2_update_ratio();	
 					}
 				} else if ((count_l >= 700) && (count_l < 800)) {
 					// Last PIN8: 0.4(ratio=0)
@@ -354,8 +357,8 @@ void FPPA0(void)
 						// PIN9: 0.4~100(ratio=0++, 0~249)
 						duty_ratio_adding_pin9();
 
-						pwmg0_enable();	
-						pwmg1_enable();	
+						pwmg0_update_ratio();	
+						pwmg1_update_ratio();	
 					}
 				} else if ((count_l >= 1050) && (count_l < 1100)) {
 					// Last PIN8: 100(ratio=249)
@@ -374,8 +377,8 @@ void FPPA0(void)
 						// PIN10: 100~0.4(ratio=249--, 249~0)
 						duty_ratio_deling_pin10();
 
-						pwmg1_enable();	
-						pwmg2_enable();	
+						pwmg1_update_ratio();	
+						pwmg2_update_ratio();	
 					}
                 }
 
@@ -517,7 +520,7 @@ void duty_ratio_adding_pin10(void)
 }
 
 // Enable PWMG0 Output with X% duty ratio
-void pwmg0_enable(void)
+void pwmg0_update_ratio(void)
 {
 	if (0 == duty_ratio_l_pin8) {
 		pwmg0dtl = 0b10_0000;// DB0 = pwmg0dtl[5] = 1
@@ -532,7 +535,10 @@ void pwmg0_enable(void)
 		pwmg0dtl = 192 + 0b10_0000;// DB0 = pwmg0dtl[5] = 1
 		pwmg0dth = duty_ratio_h_pin8;// DB10_1 = {pwmg0dth[7:0], pwmg0dtl[7:6]}
 	}
+}
 
+void pwmg0_enable(void)
+{
 	// Fpwm_duty = [DB10_1 + DB0*0.5 + 0.5] / (CB + 1) = (DB10_1 + 1) / 250
 	pwmg0c = 0b0000_0110;// PA0 PWM
 }
@@ -544,7 +550,7 @@ void pwmg0_disable(void)
 }
 
 // Enable PWMG1 Output with X% duty ratio
-void pwmg1_enable(void)
+void pwmg1_update_ratio(void)
 {
 	if (0 == duty_ratio_l_pin9) {
 		pwmg1dtl = 0b10_0000;// DB0 = pwmg1dtl[5] = 1
@@ -559,7 +565,10 @@ void pwmg1_enable(void)
 		pwmg1dtl = 192 + 0b10_0000;// DB0 = pwmg1dtl[5] = 1
 		pwmg1dth = duty_ratio_h_pin9;// DB10_1 = {pwmg1dth[7:0], pwmg1dtl[7:6]}
 	}
+}
 
+void pwmg1_enable(void)
+{
 	// Fpwm_duty = [DB10_1 + DB0*0.5 + 0.5] / (CB + 1) = (DB10_1 + 1) / 250
 	pwmg1c = 0b0000_0110;// PA4 PWM
 }
@@ -570,8 +579,8 @@ void pwmg1_disable(void)
 	pwmg1c = 0b0000_0000;// do not output PWM
 }
 
-// Enable PWMG1 Output with X% duty ratio
-void pwmg2_enable(void)
+// Enable PWMG2 Output with X% duty ratio
+void pwmg2_update_ratio(void)
 {
 	if (0 == duty_ratio_l_pin10) {
 		pwmg2dtl = 0b10_0000;// DB0 = pwmg2dtl[5] = 1
@@ -586,7 +595,10 @@ void pwmg2_enable(void)
 		pwmg2dtl = 192 + 0b10_0000;// DB0 = pwmg2dtl[5] = 1
 		pwmg2dth = duty_ratio_h_pin10;// DB10_1 = {pwmg2dth[7:0], pwmg2dtl[7:6]}
 	}
+}
 
+void pwmg2_enable(void)
+{
 	// Fpwm_duty = [DB10_1 + DB0*0.5 + 0.5] / (CB + 1) = (DB10_1 + 1) / 250
 	pwmg2c = 0b0000_0110;// PA3 PWM
 }
