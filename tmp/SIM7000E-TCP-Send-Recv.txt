@@ -1,0 +1,952 @@
+****************************************************************
+* Test1
+****************************************************************
+// 只在IP INITIAL状态下，才可以执行该命令，该命令执行完后状态变为IP START
+AT+CSTT="CMNET" // Start Task and Set APN, USER NAME, PASSWOR
+OK
+AT+CIICR // Bring Up Wireless Connection with GPRS
+OK
+AT+CIFSR
+100.73.9.90
+AT+CIPSTART="TCP","122.4.233.119",8855
+OK
+
+CONNECT OK
+AT+CIPSEND=12
+> 54545454ninfd
+
+SEND OK
+收:123abcdefg
+
+
+AT+CSTT="cmnbiot1"
+OK
+AT+CIICR
+OK
+AT+CIFSR
+100.73.9.90
+AT+CIPSTART="TCP","122.4.233.119",8000
+OK
+
+CONNECT OK
+AT+CIPSEND=12
+> 54545454ninfd
+
+SEND OK
+收:123abcdefg
+
+
+
+
+
+****************************************************************
+* Change Mode from NB to GSM:
+****************************************************************
+[11:04:40.252]发→◇AT+CNMP? // 38为NB模式, 13为GSM模式
+□
+[11:04:40.258]收←◆AT+CNMP?
++CNMP: 38
+
+OK
+
+[11:04:56.176]发→◇AT+CMNB? // NB模式下，该参数必须为2，GSM模式不CARE该参数
+□
+[11:04:56.181]收←◆AT+CMNB?
++CMNB: 2
+
+OK
+
+[11:15:24.790]发→◇AT+CSTT?
+□
+[11:15:24.795]收←◆AT+CSTT?
++CSTT: "CMNET","","" // "APN","USER","PWD"
+
+OK
+
+[13:44:41.754]发→◇AT+CIPCSGP?
+□
+[13:44:41.761]收←◆AT+CIPCSGP?
++CIPCSGP: 1,"CMNET","",""
+
+OK
+
+[13:52:40.823]发→◇AT+CGNAPN // Get Network APN in CAT-M Or NB-IOT
+□
+[13:52:40.828]收←◆AT+CGNAPN
++CGNAPN: 0,"" // 0-The network did not sent APN parameter to UE, 1-The network sent APN parameter to UE
+
+OK
+
+[11:11:45.864]发→◇AT+COPS?
+□
+[11:11:45.868]收←◆AT+COPS?
++COPS: 0 // 0-Unknown, 1-Operator available, 2-Operator current, 3-Operator forbidden
+
+OK
+
+
+[14:15:25.425]发→◇AT+CIPSTATUS
+□
+[14:15:25.431]收←◆AT+CIPSTATUS
+OK
+
+STATE: IP GPRSACT
+
+
+[11:04:31.539]发→◇AT+CPSI? // 查看网络注册信息
+□
+[11:04:31.544]收←◆AT+CPSI?
++CPSI: NO SERVICE,Online
+
+OK
+
+[11:05:06.680]发→◇AT+CNMP=13
+□
+[11:05:06.683]收←◆AT+CNMP=13
+OK
+
+[11:05:15.041]收←◆
+DST: 0 // 该消息不一定每一次都有
+
+*PSUTTZ: 18/12/16,03:05:13","+32",0 // 该消息不一定每一次都有
+
+[11:05:27.286]发→◇AT+CGATT? // 查看网络是否注册
+□
+[11:05:27.291]收←◆AT+CGATT?
++CGATT: 1
+
+OK
+
+[11:14:38.330]发→◇AT+COPS?
+□
+[11:14:38.332]收←◆AT+COPS?
++COPS: 0,0,"460 00",0
+
+OK
+
+[11:05:34.612]发→◇AT+CPSI?
+□
+[11:05:34.621]收←◆AT+CPSI?
++CPSI: GSM,Online,460-00,0x5294,46391,2 EGSM 900,-60,0,39-149
+
+OK
+
+
+****************************************************************
+* Power ON:
+****************************************************************
+
+[14:16:36.843]发→◇AT+CIPSTATUS
+□
+[14:16:36.848]收←◆AT+CIPSTATUS
+OK
+
+STATE: IP INITIAL
+
+[14:17:37.389]发→◇AT+CNMP?
+□
+[14:17:37.393]收←◆AT+CNMP?
++CNMP: 13
+
+OK
+
+[14:17:44.856]发→◇AT+CMNB?
+□
+[14:17:44.860]收←◆AT+CMNB?
++CMNB: 2
+
+OK
+
+[14:17:52.239]发→◇AT+CSTT?
+□
+[14:17:52.244]收←◆AT+CSTT?
++CSTT: "CMNET","",""
+
+OK
+
+[14:18:00.106]发→◇AT+CIPCSGP?
+□
+[14:18:00.113]收←◆AT+CIPCSGP?
++CIPCSGP: 1,"CMNET","",""
+
+OK
+
+[14:18:22.288]发→◇AT+CGNAPN
+□
+[14:18:22.293]收←◆AT+CGNAPN
++CGNAPN: 0,""
+
+OK
+
+[14:18:28.990]发→◇AT+COPS?
+□
+[14:18:28.996]收←◆AT+COPS?
++COPS: 0,0,"460 00",0
+
+OK
+
+[14:18:41.331]发→◇AT+CPSI?
+□
+[14:18:41.340]收←◆AT+CPSI?
++CPSI: GSM,Online,460-00,0x5294,46391,2 EGSM 900,-61,0,38-148
+
+OK
+
+[14:18:52.790]发→◇AT+CGATT?
+□
+[14:18:52.795]收←◆AT+CGATT?
++CGATT: 1
+
+OK
+
+[14:19:26.118]发→◇AT+CIPSTATUS
+□
+[14:19:26.125]收←◆AT+CIPSTATUS
+OK
+
+STATE: IP INITIAL
+
+[14:19:42.868]发→◇AT+CIFSR
+□
+[14:19:42.873]收←◆AT+CIFSR
+ERROR
+
+[14:19:50.733]发→◇AT+CIICR
+□
+[14:19:50.738]收←◆AT+CIICR
+ERROR
+
+[14:20:16.863]发→◇AT+CIPSTART="TCP","122.4.233.119",8855
+□
+[14:20:16.872]收←◆AT+CIPSTART="TCP","122.4.233.119",8855
+OK
+
+[14:20:18.255]收←◆
+CONNECT OK
+
+[14:22:07.918]发→◇AT+CIPCLOSE=1
+□
+[14:22:07.924]收←◆AT+CIPCLOSE=1
+CLOSE OK
+
+[14:22:35.429]发→◇AT+CIPSHUT
+□
+[14:22:35.434]收←◆AT+CIPSHUT
+SHUT OK
+
+// CIPCLOSE及CIPSHUT后，TCP依旧可以连上
+[14:24:57.837]发→◇AT+CIPSTART="TCP","122.4.233.119",8855
+□
+[14:24:57.846]收←◆AT+CIPSTART="TCP","122.4.233.119",8855
+OK
+
+[14:24:59.393]收←◆
+CONNECT OK
+
+[14:26:35.682]发→◇AT+CIPCLOSE=1
+□
+[14:26:35.687]收←◆AT+CIPCLOSE=1
+CLOSE OK
+
+[14:26:41.471]发→◇AT+CIPSHUT
+□
+[14:26:41.477]收←◆AT+CIPSHUT
+SHUT OK
+
+[14:27:04.720]发→◇AT+CIPSTATUS
+□
+[14:27:04.726]收←◆AT+CIPSTATUS
+OK
+
+STATE: IP INITIAL
+
+[14:27:14.587]发→◇AT+CSTT="CMNET" // 重新设置APN，CIPSTATUS状态才会变成IP START
+□
+[14:27:14.594]收←◆AT+CSTT="CMNET"
+OK
+
+[14:27:19.026]发→◇AT+CIPSTATUS
+□
+[14:27:19.032]收←◆AT+CIPSTATUS
+OK
+
+STATE: IP START
+
+[14:27:27.962]发→◇AT+CIICR // 非IP START时，该命令返回ERROR，重置APN后，必须执行该命令，否则以下两条命令都返回ERROR
+□
+[14:27:27.967]收←◆AT+CIICR
+[14:27:28.774]收←◆
+OK
+
+[14:27:36.340]发→◇AT+CIFSR
+□
+[14:27:36.345]收←◆AT+CIFSR
+10.158.243.194
+
+[14:27:43.054]发→◇AT+CIPSTART="TCP","122.4.233.119",8855
+□
+[14:27:43.062]收←◆AT+CIPSTART="TCP","122.4.233.119",8855
+OK
+
+[14:27:43.869]收←◆
+CONNECT OK
+
+[14:27:53.542]发→◇AT+CIPCLOSE=1
+□
+[14:27:53.547]收←◆AT+CIPCLOSE=1
+CLOSE OK
+
+[14:28:00.661]发→◇AT+CIPSHUT
+□
+[14:28:00.667]收←◆AT+CIPSHUT
+SHUT OK
+
+****************************************************************
+* PW ON:
+****************************************************************
+[22:42:25.310]发→◇AT
+□
+[22:42:25.798]发→◇AT
+□
+[22:42:25.805]收←◆AT
+OK
+
+[22:42:26.409]收←◆
+DST: 0
+
+*PSUTTZ: 18/12/28,14:42:25","+32",0
+
+
+
+****************************************************************
+* HTTP GET NG:
+****************************************************************
+[22:37:25.324]发→◇AT+HTTPINIT
+□
+[22:37:25.328]收←◆AT+HTTPINIT
+OK
+
+[22:37:37.560]发→◇AT+HTTPPARA="CID",1
+□
+[22:37:37.565]收←◆AT+HTTPPARA="CID",1
+OK
+
+[22:37:46.492]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[22:37:46.499]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+
+// AT+HTTPPARA="URL","www.dyxy.net"
+
+[22:38:03.772]发→◇AT+HTTPACTION=0
+□
+[22:38:03.778]收←◆AT+HTTPACTION=0
+OK
+
++HTTPACTION: 0,601,0
+
+[22:38:14.832]发→◇AT+HTTPREAD
+□
+[22:38:14.836]收←◆AT+HTTPREAD
+OK
+
+[22:38:31.500]发→◇AT+HTTPTERM
+□
+[22:38:31.505]收←◆AT+HTTPTERM
+OK
+
+
+
+****************************************************************
+* HTTP GET OK:
+****************************************************************
+[23:23:10.707]发→◇AT+CGATT?
+□
+[23:23:10.710]收←◆AT+CGATT?
++CGATT: 1
+
+OK
+
+[23:23:39.715]发→◇AT+SAPBR=3,1,"APN","CMNET"
+□
+[23:23:39.721]收←◆AT+SAPBR=3,1,"APN","CMNET"
+OK
+
+[23:23:48.900]发→◇AT+SAPBR=1,1
+□
+[23:23:48.906]收←◆AT+SAPBR=1,1
+[23:23:49.776]收←◆
+OK
+
+[23:23:56.463]发→◇AT+HTTPINIT
+□
+[23:23:56.468]收←◆AT+HTTPINIT
+OK
+
+[23:24:04.668]发→◇AT+HTTPPARA="CID",1
+□
+[23:24:04.675]收←◆AT+HTTPPARA="CID",1
+OK
+
+// AT+HTTPPARA="URL","http://dl.kkdownload.com/kz3sem2/KuaiZip_Setup_sem2_606.exe"
+[23:24:12.580]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:24:12.587]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[23:24:19.547]发→◇AT+HTTPACTION=0
+□
+[23:24:19.553]收←◆AT+HTTPACTION=0
+OK
+
+[23:24:21.532]收←◆
++HTTPACTION: 0,200,69
+
+[23:24:35.834]发→◇AT+HTTPREAD
+□
+[23:24:35.845]收←◆AT+HTTPREAD
++HTTPREAD: 69
+<script language=javascript>location.href='espcms/index.php'</script>
+OK
+
+[22:02:53.617]发→◇AT+HTTPPARA="URL","http://dl.kkdownload.com/kz3sem2/KuaiZip_Setup_sem2_606.exe" // 9M
+□
+[22:02:53.632]收←◆AT+HTTPPARA="URL","http://dl.kkdownload.com/kz3sem2/KuaiZip_Setup_sem2_606.exe"
+OK
+
+[22:03:03.935]发→◇AT+HTTPACTION=0
+□
+[22:03:03.941]收←◆AT+HTTPACTION=0
+OK
+
+[22:03:13.404]收←◆
++HTTPACTION: 0,602,0 // NO Memory
+
+[22:05:20.520]发→◇AT+HTTPPARA="URL","https://github.com/abc3240660/WaterBalance/blob/master/HUGUANG_a_20180403_50.c"
+□
+[22:05:20.539]收←◆AT+HTTPPARA="URL","https://github.com/abc3240660/WaterBalance/blob/master/HUGUANG_a_20180403_50.c"
+OK
+
+[22:05:31.552]发→◇AT+HTTPACTION=0
+□
+[22:05:31.558]收←◆AT+HTTPACTION=0
+OK
+
+[22:05:32.466]收←◆
++HTTPACTION: 0,603,0 // DNS Error
+
+[22:06:04.356]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[22:06:04.364]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[22:06:08.561]发→◇AT+HTTPACTION=0
+□
+[22:06:08.566]收←◆AT+HTTPACTION=0
+OK
+
+[22:06:09.802]收←◆
++HTTPACTION: 0,200,69
+
+[22:06:22.636]发→◇AT+HTTPPARA="URL","www.baidu.com"
+□
+[22:06:22.643]收←◆AT+HTTPPARA="URL","www.baidu.com"
+OK
+
+[22:06:36.709]发→◇AT+HTTPACTION=0
+□
+[22:06:36.720]收←◆AT+HTTPACTION=0
+OK
+
+[22:08:36.712]收←◆
++HTTPACTION: 0,408,0 // Time out
+
+[22:25:21.265]发→◇AT+HTTPPARA="URL","www.aliyun.com"
+□
+[22:25:21.273]收←◆AT+HTTPPARA="URL","www.aliyun.com"
+OK
+
+[22:25:28.845]发→◇AT+HTTPACTION=0
+□
+[22:25:28.851]收←◆AT+HTTPACTION=0
+OK
+
+[22:25:38.056]收←◆
++HTTPACTION: 0,301,357
+
+[22:27:33.896]发→◇AT+HTTPREAD
+□
+[22:27:33.921]收←◆AT+HTTPREAD
++HTTPREAD: 357
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>301 Moved Permanently</title></head>
+<body bgcolor="white">
+<h1>301 Moved Permanently</h1>
+<p>The requested resource has been assigned a new permanent URI.</p>
+<hr/>Powered by Tengine/Aserver</body>
+</html>
+
+OK
+
+[22:38:43.211]发→◇AT+HTTPPARA="URL","http://61.135.169.105"
+□
+[22:38:43.220]收←◆AT+HTTPPARA="URL","http://61.135.169.105"
+OK
+
+[22:38:50.547]发→◇AT+HTTPACTION=0
+□
+[22:38:50.552]收←◆AT+HTTPACTION=0
+OK
+
+[22:40:50.551]收←◆
++HTTPACTION: 0,408,0
+
+[23:24:44.721]发→◇AT+HTTPTERM
+□
+[23:24:44.727]收←◆AT+HTTPTERM
+OK
+
+[23:25:47.881]发→◇AT+HTTPINIT
+□
+[23:25:47.896]收←◆AT+HTTPINIT
+OK
+
+[23:25:57.848]发→◇AT+HTTPPARA="CID",1
+□
+[23:25:57.856]收←◆AT+HTTPPARA="CID",1
+OK
+
+[23:26:05.536]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:26:05.547]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[23:26:15.816]发→◇AT+HTTPACTION=0
+□
+[23:26:15.824]收←◆AT+HTTPACTION=0
+OK
+
+[23:26:17.313]收←◆
++HTTPACTION: 0,200,69
+
+[23:26:27.865]发→◇AT+HTTPREAD
+□
+[23:26:27.876]收←◆AT+HTTPREAD
++HTTPREAD: 69
+<script language=javascript>location.href='espcms/index.php'</script>
+OK
+
+[23:26:49.920]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:26:49.930]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[23:26:58.651]发→◇AT+HTTPACTION=0
+□
+[23:26:58.658]收←◆AT+HTTPACTION=0
+OK
+
+[23:27:00.170]收←◆
++HTTPACTION: 0,200,69
+
+[23:27:06.345]发→◇AT+HTTPREAD
+□
+[23:27:06.356]收←◆AT+HTTPREAD
++HTTPREAD: 69
+<script language=javascript>location.href='espcms/index.php'</script>
+OK
+
+[23:27:52.719]发→◇AT+SAPBR=0,1
+□
+[23:27:52.729]收←◆AT+SAPBR=0,1
+OK
+
+[23:28:04.511]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:28:04.518]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[23:28:12.084]发→◇AT+HTTPACTION=0
+□
+[23:28:12.091]收←◆AT+HTTPACTION=0
+OK
+
++HTTPACTION: 0,601,0
+
+[23:29:31.776]发→◇AT+SAPBR=1,1
+□
+[23:29:31.783]收←◆AT+SAPBR=1,1
+[23:29:32.611]收←◆
+OK
+
+[23:29:45.266]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:29:45.274]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+// AT+HTTPPARA="URL","http://www.padauk.com.tw/upload/doc/PMS152_datasheet_v103_CN_20181113.pdf" -> 602
+// AT+HTTPPARA="URL","https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1544984709318&di=d36538d5928629d22cf25f32d72f9631&imgtype=0&src=http%3A%2F%2Fpic.90sjimg.com%2Fback_pic%2Fu%2F00%2F28%2F77%2F06%2F55ef96ba08b9d.jpg" -> 603
+// AT+HTTPPARA="URL","https://www.hao123.com"
+
+[23:29:51.703]发→◇AT+HTTPACTION=0
+□
+[23:29:51.708]收←◆AT+HTTPACTION=0
+OK
+
+[23:29:55.830]收←◆
++HTTPACTION: 0,200,69
+
+[23:30:04.938]发→◇AT+HTTPREAD
+□
+[23:30:04.949]收←◆AT+HTTPREAD
++HTTPREAD: 69
+<script language=javascript>location.href='espcms/index.php'</script>
+OK
+
+
+[23:39:44.552]发→◇AT+HTTPPARA="URL","https://www.hao123.com"
+□
+[23:39:44.561]收←◆AT+HTTPPARA="URL","https://www.hao123.com"
+OK
+
+[23:39:50.198]发→◇AT+HTTPACTION=0
+□
+[23:39:50.205]收←◆AT+HTTPACTION=0
+OK
+
+[23:39:51.182]收←◆
++HTTPACTION: 0,603,0
+
+[23:40:04.713]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:40:04.721]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[23:40:13.048]发→◇AT+HTTPACTION=0
+□
+[23:40:13.056]收←◆AT+HTTPACTION=0
+OK
+
+[23:40:14.763]收←◆
++HTTPACTION: 0,200,69
+
+
+/////////////////////// After Power ON /////////////////////////////////
+
+[21:33:28.039]发→◇AT
+□
+[21:33:28.857]发→◇AT
+□
+[21:33:28.859]收←◆AT
+OK
+
+[21:41:22.723]发→◇AT+CNMP?
+□
+[21:41:22.726]收←◆AT+CNMP?
++CNMP: 13
+
+OK
+
+[21:41:41.026]发→◇AT+CSTT?
+□
+[21:41:41.031]收←◆AT+CSTT?
++CSTT: "CMNET","",""
+
+OK
+
+[21:42:44.965]发→◇AT+CIPCLOSE=1
+□
+[21:42:44.969]收←◆AT+CIPCLOSE=1
+ERROR
+
+[21:44:15.072]发→◇AT+CIPSHUT
+□
+[21:44:15.079]收←◆AT+CIPSHUT
+SHUT OK
+
+[21:45:20.148]发→◇AT+CIPSTART="TCP","47.105.222.239",88
+□
+[21:45:20.157]收←◆AT+CIPSTART="TCP","47.105.222.239",88
+OK
+
+[21:45:21.836]收←◆
+CONNECT OK
+
+[21:51:16.466]发→◇AT+CIPSTART="TCP","47.105.222.239",88
+□
+[21:51:16.476]收←◆AT+CIPSTART="TCP","47.105.222.239",88
+ERROR
+
+ALREADY CONNECT
+
+[21:45:58.125]发→◇AT+CIPSEND=12
+□
+[21:45:58.129]收←◆AT+CIPSEND=12
+> 
+[21:46:07.674]发→◇54545454ninfd
+□
+[21:46:07.680]收←◆54545454ninfd
+
+[21:46:08.311]收←◆
+SEND OK
+
+[21:46:08.335]收←◆54545454ninf
+
+
+/////////////////////// GET GSN /////////////////////////////////
+[21:49:32.511]发→◇AT+GSN
+□
+[21:49:32.517]收←◆AT+GSN
+865234030099781
+
+OK
+
+
+/////////////////////// PWR ON(Not Fix Len) /////////////////////////////////
+[22:53:15.221]发→◇AT
+□
+[22:53:15.761]发→◇AT
+□
+[22:53:15.767]收←◆AT
+OK
+
+[22:53:31.946]发→◇AT+CIPSTART="TCP","47.105.222.239",88
+□
+[22:53:31.954]收←◆AT+CIPSTART="TCP","47.105.222.239",88
+OK
+
+[22:53:33.483]收←◆
+CONNECT OK
+
+[22:53:41.796]发→◇AT+CIPSEND
+□
+[22:53:41.805]收←◆AT+CIPSEND
+> 
+[22:53:55.353]发→◇123456
+□
+[22:53:55.360]收←◆123456
+
+[22:54:04.315]发→◇abcdef
+□
+[22:54:04.322]收←◆abcdef
+
+[22:54:24.069]发→◇□ // 0x1A
+[22:54:24.077]收←◆ // 0x1A
+[22:54:24.821]收←◆ // 0x1A
+SEND OK
+123456
+abcdef
+
+
+/////////////////////// TEMP SAVE /////////////////////////////////
+
+[23:23:07.063]发→◇AT+CGATT?
+□
+[23:23:08.511]发→◇AT+CGATT?
+□
+[23:23:09.001]发→◇AT+CGATT?
+□
+[23:23:09.553]发→◇AT+CGATT?
+□
+[23:23:10.101]发→◇AT+CGATT?
+□
+[23:23:10.707]发→◇AT+CGATT?
+□
+[23:23:10.710]收←◆AT+CGATT?
++CGATT: 1
+
+OK
+
+[23:23:39.715]发→◇AT+SAPBR=3,1,"APN","CMNET"
+□
+[23:23:39.721]收←◆AT+SAPBR=3,1,"APN","CMNET"
+OK
+
+[23:23:48.900]发→◇AT+SAPBR=1,1
+□
+[23:23:48.906]收←◆AT+SAPBR=1,1
+[23:23:49.776]收←◆
+OK
+
+[23:23:56.463]发→◇AT+HTTPINIT
+□
+[23:23:56.468]收←◆AT+HTTPINIT
+OK
+
+[23:24:04.668]发→◇AT+HTTPPARA="CID",1
+□
+[23:24:04.675]收←◆AT+HTTPPARA="CID",1
+OK
+
+[23:24:12.580]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:24:12.587]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[23:24:19.547]发→◇AT+HTTPACTION=0
+□
+[23:24:19.553]收←◆AT+HTTPACTION=0
+OK
+
+[23:24:21.532]收←◆
++HTTPACTION: 0,200,69
+
+[23:24:35.834]发→◇AT+HTTPREAD
+□
+[23:24:35.845]收←◆AT+HTTPREAD
++HTTPREAD: 69
+<script language=javascript>location.href='espcms/index.php'</script>
+OK
+
+[23:24:44.721]发→◇AT+HTTPTERM
+□
+[23:24:44.727]收←◆AT+HTTPTERM
+OK
+
+[23:25:47.881]发→◇AT+HTTPINIT
+□
+[23:25:47.896]收←◆AT+HTTPINIT
+OK
+
+[23:25:57.848]发→◇AT+HTTPPARA="CID",1
+□
+[23:25:57.856]收←◆AT+HTTPPARA="CID",1
+OK
+
+[23:26:05.536]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:26:05.547]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[23:26:15.816]发→◇AT+HTTPACTION=0
+□
+[23:26:15.824]收←◆AT+HTTPACTION=0
+OK
+
+[23:26:17.313]收←◆
++HTTPACTION: 0,200,69
+
+[23:26:27.865]发→◇AT+HTTPREAD
+□
+[23:26:27.876]收←◆AT+HTTPREAD
++HTTPREAD: 69
+<script language=javascript>location.href='espcms/index.php'</script>
+OK
+
+[23:26:49.920]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:26:49.930]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[23:26:58.651]发→◇AT+HTTPACTION=0
+□
+[23:26:58.658]收←◆AT+HTTPACTION=0
+OK
+
+[23:27:00.170]收←◆
++HTTPACTION: 0,200,69
+
+[23:27:06.345]发→◇AT+HTTPREAD
+□
+[23:27:06.356]收←◆AT+HTTPREAD
++HTTPREAD: 69
+<script language=javascript>location.href='espcms/index.php'</script>
+OK
+
+[23:27:52.719]发→◇AT+SAPBR=0,1
+□
+[23:27:52.729]收←◆AT+SAPBR=0,1
+OK
+
+[23:28:04.511]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:28:04.518]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[23:28:12.084]发→◇AT+HTTPACTION=0
+□
+[23:28:12.091]收←◆AT+HTTPACTION=0
+OK
+
++HTTPACTION: 0,601,0
+
+[23:29:31.776]发→◇AT+SAPBR=1,1
+□
+[23:29:31.783]收←◆AT+SAPBR=1,1
+[23:29:32.611]收←◆
+OK
+
+[23:29:45.266]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:29:45.274]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[23:29:51.703]发→◇AT+HTTPACTION=0
+□
+[23:29:51.708]收←◆AT+HTTPACTION=0
+OK
+
+[23:29:55.830]收←◆
++HTTPACTION: 0,200,69
+
+[23:30:04.938]发→◇AT+HTTPREAD
+□
+[23:30:04.949]收←◆AT+HTTPREAD
++HTTPREAD: 69
+<script language=javascript>location.href='espcms/index.php'</script>
+OK
+
+[23:33:51.263]发→◇AT+HTTPPARA="URL","http://www.padauk.com.tw/upload/doc/PMS152_datasheet_v103_CN_20181113.pdf"
+□
+[23:33:51.281]收←◆AT+HTTPPARA="URL","http://www.padauk.com.tw/upload/doc/PMS152_datasheet_v103_CN_20181113.pdf"
+OK
+
+[23:33:59.744]发→◇AT+HTTPACTION=0
+□
+[23:33:59.752]收←◆AT+HTTPACTION=0
+OK
+
+[23:34:02.807]收←◆
++HTTPACTION: 0,602,0
+
+[23:37:58.874]发→◇AT+HTTPPARA="URL","https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1544984709318&di=d36538d5928629d22cf25f32d72f9631&imgtype=0&src=http%3A%2F%2Fpic.90sjimg.com%2Fback_pic%2Fu%2F00%2F28%2F77%2F06%2F55ef96ba08b9d.jpg"
+□
+[23:37:58.916]收←◆AT+HTTPPARA="URL","https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1544984709318&di=d36538d5928629d22cf25f32d72f9631&imgtype=0&src=http%3A%2F%2Fpic.90sjimg.com%2Fback_pic%2Fu%2F00%2F28%2F77%2F06%2F55ef96ba08b9d.jpg"
+OK
+
+[23:38:01.887]发→◇AT+HTTPACTION=0
+□
+[23:38:01.892]收←◆AT+HTTPACTION=0
+OK
+
+[23:38:02.644]收←◆
++HTTPACTION: 0,603,0
+
+[23:39:44.552]发→◇AT+HTTPPARA="URL","https://www.hao123.com"
+□
+[23:39:44.561]收←◆AT+HTTPPARA="URL","https://www.hao123.com"
+OK
+
+[23:39:50.198]发→◇AT+HTTPACTION=0
+□
+[23:39:50.205]收←◆AT+HTTPACTION=0
+OK
+
+[23:39:51.182]收←◆
++HTTPACTION: 0,603,0
+
+[23:40:04.713]发→◇AT+HTTPPARA="URL","www.sim.com"
+□
+[23:40:04.721]收←◆AT+HTTPPARA="URL","www.sim.com"
+OK
+
+[23:40:13.048]发→◇AT+HTTPACTION=0
+□
+[23:40:13.056]收←◆AT+HTTPACTION=0
+OK
+
+[23:40:14.763]收←◆
++HTTPACTION: 0,200,69
