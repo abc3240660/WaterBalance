@@ -18,6 +18,79 @@ int port_ps = 8888;
 pthread_t thread;
 pthread_t service_thread1,service_thread2;
 
+void parse_msg(char* msg)
+{
+	char imei[] = "012345678901234";
+
+	if (strstr(msg, ",Re,")) {// Dev Auto Register
+	} else {
+		if (strstr(msg, ",R0,")) {// Dev Auto Register
+	   		memset(msg, 0, BUFFER_SIZE);  
+			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+		} else if (strstr(msg, ",H0,")) {// Auto Heartbeat
+	   		memset(msg, 0, BUFFER_SIZE);  
+			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+		} else if (strstr(msg, ",C1,")) {// Dev Auto Door Locked
+	   		memset(msg, 0, BUFFER_SIZE);  
+			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+		} else if (strstr(msg, ",O1,")) {// Dev Auto Door Unlocked
+	   		memset(msg, 0, BUFFER_SIZE);  
+			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+		} else if (strstr(msg, ",C3,")) {// Dev Auto Calypso Upload
+	   		memset(msg, 0, BUFFER_SIZE);  
+			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+		} else if (strstr(msg, ",W1,")) {// Dev Auto Invalid Moving
+	   		memset(msg, 0, BUFFER_SIZE);  
+			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+		} else if (strstr(msg, ",L1,")) {// Dev Auto Report GPS
+	   		memset(msg, 0, BUFFER_SIZE);  
+			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+		} else if (strstr(msg, ",U1,")) {// Dev Auto IAP Success
+	   		memset(msg, 0, BUFFER_SIZE);  
+			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+		} else if (strstr(msg, ",B1,")) {// Dev Auto Charge Started
+	   		memset(msg, 0, BUFFER_SIZE);  
+			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+		} else if (strstr(msg, ",B3,")) {// Dev Auto 
+	   		memset(msg, 0, BUFFER_SIZE);  
+			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+		} else {
+	   		memset(msg, 0, BUFFER_SIZE);  
+			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+		}
+	}
+}
+
+void create_msg(char* msg)
+{
+	char imei[] = "012345678901234";
+
+	printf("auto_send = %d\n", auto_send);
+	if (1 == auto_send) {// Srv Auto Query Params
+		sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+	} else if (2 == auto_send) {// Srv Auto Shutdown
+		sprintf(msg, "^MOBIT,ECAR,%s,S0,$\n", imei);
+	} else if (3 == auto_send) {// Srv Auto Query GPS
+		sprintf(msg, "^MOBIT,ECAR,%s,L0,$\n", imei);
+	} else if (4 == auto_send) {// Srv Auto IAP Request
+		sprintf(msg, "^MOBIT,ECAR,%s,U0,http://xxx/xxx.bin,$\n", imei);
+	} else if (5 == auto_send) {// Srv Auto MP3 Update Request
+		sprintf(msg, "^MOBIT,ECAR,%s,U2,file-name,http://xxx/xxx.mp3,file-md5,$\n", imei);
+	} else if (6 == auto_send) {// Srv Auto MP3 Play
+		sprintf(msg, "^MOBIT,ECAR,%s,P0,file-name,$\n", imei);
+	} else if (7 == auto_send) {// Srv Auto Start GPS Trace
+		sprintf(msg, "^MOBIT,ECAR,%s,T0,120,$\n", imei);
+	} else if (8 == auto_send) {// Srv Auto Stop GPS Trace
+		sprintf(msg, "^MOBIT,ECAR,%s,T2,$\n", imei);
+	} else if (9 == auto_send) {// Srv Auto Query BMS Status
+		sprintf(msg, "^MOBIT,ECAR,%s,B0,$\n", imei);
+	} else if (10 == auto_send) {// Srv Auto Query MP3
+		sprintf(msg, "^MOBIT,ECAR,%s,P2,$\n", imei);
+	} else {
+		sprintf(msg, "^MOBIT,ECAR,%s,XX,$\n", imei);
+	}
+}
+
 void *PL_switch(void)
 {
     struct sockaddr_in   server_addr;
@@ -82,7 +155,7 @@ void *PL_switch(void)
    	    		length = recv(new_server_socket, buffer, BUFFER_SIZE, 0);
 
         		if (0 == length) {
-					printf("client closed!!!\n", ret);
+					printf("slave client closed!!!\n", ret);
 					break;
 				}
 
@@ -93,20 +166,26 @@ void *PL_switch(void)
    		        		break;
 		        	}
 					printf("Recved Data(%dB): %s\n", length, buffer);
-				}
+					parse_msg(buffer);
 
-	            length = send(new_server_socket, buffer, length, 0);
-				printf("Send Data(%dB): %s\n", length, buffer);
-        	    if (length < 0)
-				{
-        	    	printf("Server Send Data Failed!\n");
-	            	break;
+		            length = send(new_server_socket, buffer, strlen(buffer), 0);
+					printf("Send AckData(%dB): %s\n", length, buffer);
+        		    if (length < 0)
+					{
+        	    		printf("Server Send Data Failed!\n");
+	            		break;
+					}
 				}
 			}
 
 			if (auto_send) {
-	            length = send(new_server_socket, buffer, length, 0);
-				printf("send ret = %d\n", length);
+				usleep(10000);
+
+		   		memset(buffer, 0, BUFFER_SIZE);  
+				create_msg(buffer);
+				auto_send = 0;
+	            length = send(new_server_socket, buffer, strlen(buffer), 0);
+				printf("Send AutData(%dB): %s\n", length, buffer);
         	    if (length < 0)
 				{
         	    	printf("Server Send Data Failed!\n");
@@ -165,7 +244,7 @@ void *PS_switch(void)
             break;
         }
 
-        printf("client connected!!!\n");
+        printf("slave client connected!!!\n");
 
 		fd_set rset, wset;
 		struct timeval tval;
@@ -198,6 +277,10 @@ void *PS_switch(void)
    		        		break;
 		        	}
 					printf("Recved Data(%dB): %s\n", length, buffer);
+					if (strstr(buffer, "SET=")) {
+						auto_send = atoi(buffer+4);
+						printf("auto_send mode = %d\n", auto_send);
+					}
 				}
 
 	            length = send(new_server_socket, buffer, length, 0);

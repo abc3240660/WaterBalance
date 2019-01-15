@@ -58,12 +58,14 @@ int main(int argc, char **argv)
         exit(1);  
     }  
 
+	int mode = 0;
     int length = 0;  
     char buffer[BUFFER_SIZE];  
 	while (1) {
+		mode++;
 #if 1
    		memset(buffer, 0, BUFFER_SIZE);  
-		strcpy(buffer, "Hello Damon");
+		sprintf(buffer, "SET=%d", mode);
 	    length = send(client_socket, buffer, strlen(buffer), 0);  
 
 	    length = 0;  
@@ -76,18 +78,12 @@ int main(int argc, char **argv)
 	            break;  
     	    } else {
 				printf("Recved Data(%dB): %s\n", length, buffer);
-#if 0
-				for (int i=0; i<length; i++) {
-					printf("%.2X ", buffer[i]);
-				}
-				printf("\n");
-#endif
 			}
 
     		memset(buffer, 0, BUFFER_SIZE);  
 	    }  
 #endif
-		usleep(1000);
+		usleep(3000);
 	}
 
     close(client_socket);  
