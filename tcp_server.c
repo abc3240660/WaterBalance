@@ -22,41 +22,45 @@ void parse_msg(char* msg)
 {
 	char imei[] = "012345678901234";
 
+	// Recved DEV Reply, SRV Just SKIP
 	if (strstr(msg, ",Re,")) {// Dev Auto Register
+   		memset(msg, 0, BUFFER_SIZE);  
 	} else {
+		// Recved DEV CMD, SRV Just Reply
 		if (strstr(msg, ",R0,")) {// Dev Auto Register
 	   		memset(msg, 0, BUFFER_SIZE);  
-			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+			sprintf(msg, "^MOBIT,ECAR,%s,Re,R0,20190115170655,10,$\n", imei);
 		} else if (strstr(msg, ",H0,")) {// Auto Heartbeat
 	   		memset(msg, 0, BUFFER_SIZE);  
-			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+			sprintf(msg, "^MOBIT,ECAR,%s,Re,H0,$\n", imei);
 		} else if (strstr(msg, ",C1,")) {// Dev Auto Door Locked
 	   		memset(msg, 0, BUFFER_SIZE);  
-			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+			sprintf(msg, "^MOBIT,ECAR,%s,Re,C1,$\n", imei);
 		} else if (strstr(msg, ",O1,")) {// Dev Auto Door Unlocked
 	   		memset(msg, 0, BUFFER_SIZE);  
-			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+			sprintf(msg, "^MOBIT,ECAR,%s,Re,O1,$\n", imei);
 		} else if (strstr(msg, ",C3,")) {// Dev Auto Calypso Upload
 	   		memset(msg, 0, BUFFER_SIZE);  
-			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+			sprintf(msg, "^MOBIT,ECAR,%s,Re,C3,0,,$\n", imei);// keep locked
+			// sprintf(msg, "^MOBIT,ECAR,%s,Re,C3,1,,$\n", imei);// do unlock
 		} else if (strstr(msg, ",W1,")) {// Dev Auto Invalid Moving
 	   		memset(msg, 0, BUFFER_SIZE);  
-			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+			sprintf(msg, "^MOBIT,ECAR,%s,Re,W1,$\n", imei);
 		} else if (strstr(msg, ",L1,")) {// Dev Auto Report GPS
 	   		memset(msg, 0, BUFFER_SIZE);  
-			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+			sprintf(msg, "^MOBIT,ECAR,%s,Re,L1,$\n", imei);
 		} else if (strstr(msg, ",U1,")) {// Dev Auto IAP Success
 	   		memset(msg, 0, BUFFER_SIZE);  
-			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+			sprintf(msg, "^MOBIT,ECAR,%s,Re,U1,$\n", imei);
 		} else if (strstr(msg, ",B1,")) {// Dev Auto Charge Started
 	   		memset(msg, 0, BUFFER_SIZE);  
-			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+			sprintf(msg, "^MOBIT,ECAR,%s,Re,B1,$\n", imei);
 		} else if (strstr(msg, ",B3,")) {// Dev Auto 
 	   		memset(msg, 0, BUFFER_SIZE);  
-			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+			sprintf(msg, "^MOBIT,ECAR,%s,Re,B3,$\n", imei);
 		} else {
-	   		memset(msg, 0, BUFFER_SIZE);  
-			sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
+   			memset(msg, 0, BUFFER_SIZE);  
+			printf("Unknown CMD Recved!!!\n");
 		}
 	}
 }
@@ -70,24 +74,30 @@ void create_msg(char* msg)
 		sprintf(msg, "^MOBIT,ECAR,%s,C0,$\n", imei);
 	} else if (2 == auto_send) {// Srv Auto Shutdown
 		sprintf(msg, "^MOBIT,ECAR,%s,S0,$\n", imei);
-	} else if (3 == auto_send) {// Srv Auto Query GPS
+	} else if (3 == auto_send) {// Srv Auto Ring Alarm
+		sprintf(msg, "^MOBIT,ECAR,%s,R2,5,$\n", imei);
+	} else if (4 == auto_send) {// Srv Auto Unlock Door
+		sprintf(msg, "^MOBIT,ECAR,%s,O0,$\n", imei);
+	} else if (5 == auto_send) {// Srv Auto Lamp Jump
+		sprintf(msg, "^MOBIT,ECAR,%s,S2,5,$\n", imei);
+	} else if (6 == auto_send) {// Srv Auto OneKey Start
+		sprintf(msg, "^MOBIT,ECAR,%s,E0,$\n", imei);
+	} else if (7 == auto_send) {// Srv Auto Query GPS
 		sprintf(msg, "^MOBIT,ECAR,%s,L0,$\n", imei);
-	} else if (4 == auto_send) {// Srv Auto IAP Request
+	} else if (8 == auto_send) {// Srv Auto IAP Request
 		sprintf(msg, "^MOBIT,ECAR,%s,U0,http://xxx/xxx.bin,$\n", imei);
-	} else if (5 == auto_send) {// Srv Auto MP3 Update Request
+	} else if (9 == auto_send) {// Srv Auto MP3 Update Request
 		sprintf(msg, "^MOBIT,ECAR,%s,U2,file-name,http://xxx/xxx.mp3,file-md5,$\n", imei);
-	} else if (6 == auto_send) {// Srv Auto MP3 Play
+	} else if (10 == auto_send) {// Srv Auto MP3 Play
 		sprintf(msg, "^MOBIT,ECAR,%s,P0,file-name,$\n", imei);
-	} else if (7 == auto_send) {// Srv Auto Start GPS Trace
+	} else if (11 == auto_send) {// Srv Auto Start GPS Trace
 		sprintf(msg, "^MOBIT,ECAR,%s,T0,120,$\n", imei);
-	} else if (8 == auto_send) {// Srv Auto Stop GPS Trace
+	} else if (12 == auto_send) {// Srv Auto Stop GPS Trace
 		sprintf(msg, "^MOBIT,ECAR,%s,T2,$\n", imei);
-	} else if (9 == auto_send) {// Srv Auto Query BMS Status
+	} else if (13 == auto_send) {// Srv Auto Query BMS Status
 		sprintf(msg, "^MOBIT,ECAR,%s,B0,$\n", imei);
-	} else if (10 == auto_send) {// Srv Auto Query MP3
+	} else if (14 == auto_send) {// Srv Auto Query MP3
 		sprintf(msg, "^MOBIT,ECAR,%s,P2,$\n", imei);
-	} else {
-		sprintf(msg, "^MOBIT,ECAR,%s,XX,$\n", imei);
 	}
 }
 
@@ -149,7 +159,6 @@ void *PL_switch(void)
 				break;
 			} else if (0 == ret) {
 				usleep(10000);
-				continue;
 			} else {
 		   		memset(buffer, 0, BUFFER_SIZE);  
    	    		length = recv(new_server_socket, buffer, BUFFER_SIZE, 0);
@@ -168,12 +177,14 @@ void *PL_switch(void)
 					printf("Recved Data(%dB): %s\n", length, buffer);
 					parse_msg(buffer);
 
-		            length = send(new_server_socket, buffer, strlen(buffer), 0);
-					printf("Send AckData(%dB): %s\n", length, buffer);
-        		    if (length < 0)
-					{
-        	    		printf("Server Send Data Failed!\n");
-	            		break;
+					if (strlen(buffer) > 0) {
+			            length = send(new_server_socket, buffer, strlen(buffer), 0);
+						printf("Send AckData(%dB): %s\n", length, buffer);
+        			    if (length < 0)
+						{
+        	    			printf("Server Send Data Failed!\n");
+	            			break;
+						}
 					}
 				}
 			}
@@ -184,12 +195,14 @@ void *PL_switch(void)
 		   		memset(buffer, 0, BUFFER_SIZE);  
 				create_msg(buffer);
 				auto_send = 0;
-	            length = send(new_server_socket, buffer, strlen(buffer), 0);
-				printf("Send AutData(%dB): %s\n", length, buffer);
-        	    if (length < 0)
-				{
-        	    	printf("Server Send Data Failed!\n");
-	            	break;
+				if (strlen(buffer) > 0) {
+		            length = send(new_server_socket, buffer, strlen(buffer), 0);
+					printf("Send AutData(%dB): %s\n", length, buffer);
+        		    if (length < 0)
+					{
+        	    		printf("Server Send Data Failed!\n");
+	            		break;
+					}
 				}
 			}
 
