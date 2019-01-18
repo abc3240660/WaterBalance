@@ -4,22 +4,9 @@
 #include "usart.h"
 #include "includes.h"	
 #include "dma.h"
-//////////////////////////////////////////////////////////////////////////////////	 
-//本程序只供学习使用，未经作者许可，不得用于其它任何用途
-//ALIENTEK 战舰开发板
-//定时器 驱动代码	   
-//正点原子@ALIENTEK
-//技术论坛:www.openedv.com
-//创建日期:2015/1/13
-//版本：V1.0
-//版权所有，盗版必究。
-//Copyright(C) 广州市星翼电子科技有限公司 2014-2024
-//All rights reserved									  
-////////////////////////////////////////////////////////////////////////////////// 	 
 
-extern u8 g_ota_runing;
+extern u8 g_ota_sta;
 extern u32 g_ota_recv_sum;
-extern u16 g_ota_one_pg_recv_tms;
 extern u16 g_ota_pg_numid;
 
 extern void counter_process();
@@ -28,14 +15,14 @@ void TIM3_Int_Init(u16 arr,u16 psc)
 {
 	TIM_TimeBaseInitTypeDef	TIM_TimeBaseInitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3,ENABLE);//开启TIM3时钟 
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3,ENABLE);
 
-	TIM_TimeBaseInitStructure.TIM_Prescaler=psc;   //分频值
-	TIM_TimeBaseInitStructure.TIM_CounterMode=TIM_CounterMode_Up;	   //计数模式
-	TIM_TimeBaseInitStructure.TIM_Period=arr;		   //自动重装数值
-	TIM_TimeBaseInitStructure.TIM_ClockDivision=TIM_CKD_DIV1;  //设置时钟分割
+	TIM_TimeBaseInitStructure.TIM_Prescaler=psc;
+	TIM_TimeBaseInitStructure.TIM_CounterMode=TIM_CounterMode_Up;
+	TIM_TimeBaseInitStructure.TIM_Period=arr;
+	TIM_TimeBaseInitStructure.TIM_ClockDivision=TIM_CKD_DIV1;
 	TIM_TimeBaseInit(TIM3,&TIM_TimeBaseInitStructure);
-	TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);//允许更新中断
+	TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
 
 	NVIC_InitStructure.NVIC_IRQChannel=TIM3_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0;
@@ -43,7 +30,7 @@ void TIM3_Int_Init(u16 arr,u16 psc)
 	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 
-	TIM_Cmd(TIM3,ENABLE);		  //使能TIM3
+	TIM_Cmd(TIM3,ENABLE);
 }
 
 void TIM3_IRQHandler(void)
@@ -51,34 +38,28 @@ void TIM3_IRQHandler(void)
 	if(TIM_GetITStatus(TIM3,TIM_IT_Update)!=RESET)
 	{
 		counter_process();
-		//OS_TimeMS++;
 	}
 	TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
 }
 
-//基本定时器6中断初始化
-//这里时钟选择为APB1的2倍，而APB1为36M
-//arr：自动重装值。
-//psc：时钟预分频数
-//这里使用的是定时器6!
 void TIM6_Int_Init(u16 arr,u16 psc)
 {
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6,ENABLE); //定时器6时钟使能
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6,ENABLE);
 	
-	TIM_TimeBaseInitStructure.TIM_Prescaler=psc;  //设置分频值，10khz的计数频率
-	TIM_TimeBaseInitStructure.TIM_CounterMode=TIM_CounterMode_Up; //向上计数模式
-	TIM_TimeBaseInitStructure.TIM_Period=arr;  //自动重装载值 计数到5000为500ms
-	TIM_TimeBaseInitStructure.TIM_ClockDivision=0; //时钟分割:TDS=Tck_Tim
+	TIM_TimeBaseInitStructure.TIM_Prescaler=psc;
+	TIM_TimeBaseInitStructure.TIM_CounterMode=TIM_CounterMode_Up;
+	TIM_TimeBaseInitStructure.TIM_Period=arr;
+	TIM_TimeBaseInitStructure.TIM_ClockDivision=0;
 	TIM_TimeBaseInit(TIM6,&TIM_TimeBaseInitStructure);
 	
-	TIM_ITConfig(TIM6,TIM_IT_Update,ENABLE); //使能TIM6的更新中断
+	TIM_ITConfig(TIM6,TIM_IT_Update,ENABLE);
 
-	NVIC_InitStructure.NVIC_IRQChannel=TIM6_IRQn; //TIM6中断
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=1; //先占优先级1级
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority=3;  //从优先级3级
-	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE; //使能通道
+	NVIC_InitStructure.NVIC_IRQChannel=TIM6_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority=3;
+	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 }
 
@@ -117,13 +98,9 @@ void TIM6_IRQHandler(void)
 			}
 			
 			USART_RX_STA|=1<<19;
-			
-			g_ota_pg_numid++;
-			g_ota_recv_sum += USART_RX_STA&0xFFFF;
-			printf("packet(%d), size=0x%.4X, total=0x%.6X\n", g_ota_pg_numid, (USART_RX_STA&0xFFFF), g_ota_recv_sum);
 		}
 
-	    TIM_ClearITPendingBit(TIM6,TIM_IT_Update); //清除中断标志位
+	    TIM_ClearITPendingBit(TIM6,TIM_IT_Update);
 		
 		TIM_Cmd(TIM6,DISABLE);
 	}
