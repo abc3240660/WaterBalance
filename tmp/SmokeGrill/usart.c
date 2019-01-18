@@ -379,17 +379,12 @@ void run_cmd_from_usart(u8 *data, u16 num)
 					memcpy(g_ota_bin_md5, data+7, SSL_MAX_LEN);
 					memcpy(snd_buf, data, num);
 					break;
+				// After Recved 03 ACK, APP will send the package data
 				// FE 40 03 + 1B-PackageNum + MD5 + FF
 				case 0x03:// Divided Package & MD5
 					g_ota_pg_numid = data[3];
 					memcpy(g_ota_package_md5, data+4, SSL_MAX_LEN);
 					memcpy(snd_buf, data, num);
-					break;
-				// FE 40 04 + 1B-RESULT + 1B-PackageNum + FF
-				// RESULT: 1-pass, 2-fail
-				case 0x04:// MCU Received Divided FW INFO
-					snd_buf[3] = 1;// pass
-					snd_len = 0;
 					break;
 				// FE 40 06 01 FF
 				case 0x06:// Query OTA Sta
