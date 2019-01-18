@@ -5,7 +5,10 @@
 #define USART_MAX_RECV_LEN  			1024*51
 
 #define EN_USART1_RX 			1
-	  	
+
+#define FILE_MD5_MAX_LEN  32
+#define SSL_MAX_LEN (FILE_MD5_MAX_LEN/2)
+
 extern u8* USART_RX_BUF;
 extern u8* USART_RX_BUF_BAK;
 

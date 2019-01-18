@@ -692,7 +692,8 @@ void iap_task(void *p_arg)
 	u32 ack_len = 0;
 	u8 md5_pass = 1;
 	u32 USART_RX_STA_BAK = 0;
-	
+	u8 bin_md5_calc[SSL_MAX_LEN];
+
 	while (1) {
 		if (0x80000 == (USART_RX_STA&(1<<19))) {
 			if ((0xFE != USART_RX_BUF[0]) || (0xFF == USART_RX_BUF[USART_RX_STA&0xFFFF - 1])) {
@@ -704,6 +705,14 @@ void iap_task(void *p_arg)
 				USART_RX_STA = 0;
 				DMA_SetCurrDataCounter(DMA1_Channel5, U1_DMA_R_LEN);
 				DMA_Cmd(DMA1_Channel5, ENABLE);
+
+				if (1 == g_ota_pg_numid) {
+					// MD5 for single package
+					// GAgent_MD5Init(&g_ota_md5_ctx);
+
+					// MD5 for total bin
+					// memset(bin_md5_calc, 0, SSL_MAX_LEN);
+				}
 
 				do {
 					if (0 == g_ota_sta) {
@@ -722,6 +731,19 @@ void iap_task(void *p_arg)
 						break;
 					}
 
+					// MD5 for single package
+					u8 package_md5_calc[SSL_MAX_LEN] = {0};
+					// GAgent_MD5Init(&package_md5_ctx);
+					// GAgent_MD5Update(&package_md5_ctx, USART_RX_BUF_BAK, (USART_RX_STA_BAK&0xFFFF));
+           			// GAgent_MD5Final(&package_md5_ctx, package_md5_calc);
+
+					if (memcpy(package_md5_calc, g_ota_package_md5, SSL_MAX_LEN) != 0) {
+						md5_pass = 0;
+					}
+
+					// MD5 for total bin
+					// GAgent_MD5Update(&g_ota_md5_ctx, USART_RX_BUF_BAK, (USART_RX_STA_BAK&0xFFFF));
+
 					if (md5_pass) {
 						// UART1_ReportOtaPackageSta(1);
 						printf("Before Write: Addr(0x%.6X), SingleSize(%d)\n", FLASH_APP1_ADDR+g_ota_recv_sum, (USART_RX_STA_BAK&0xFFFF));
@@ -737,30 +759,19 @@ void iap_task(void *p_arg)
 					// UART1_ReportOtaPackageSta(0);
 				}
 
-				if (g_ota_recv_sum == g_ota_bin_size) {
-					if (g_ota_pg_nums != g_ota_pg_numid) {
-						printf("OTA TotalPackage Error!!!\n");
-						g_ota_sta = 2;
-						// UART1_ReportOtaBinSta(0);
-					} else {
-						if (md5_pass) {
-							printf("OTA TotalWrite Success!!!\n");
-
-							g_ota_sta = 1;
-							// UART1_ReportOtaBinSta(1);
-							// Mark Flag in Flash
-							download_success();
-							SoftReset();
-						}
-					}
-				}
-
 				if (g_ota_pg_nums == g_ota_pg_numid) {
 					if (g_ota_recv_sum != g_ota_bin_size) {
 						printf("OTA TotalSize Error!!!\n");
 						g_ota_sta = 2;
 						// UART1_ReportOtaBinSta(0);
 					} else {
+						// MD5 for total bin
+           				// GAgent_MD5Final(&g_ota_md5_ctx, bin_md5_calc);
+
+						if (memcpy(bin_md5_calc, g_ota_bin_size, SSL_MAX_LEN) != 0) {
+							md5_pass = 0;
+						}
+
 						if (md5_pass) {
 							printf("OTA TotalWrite Success!!!\n");
 

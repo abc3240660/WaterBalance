@@ -61,6 +61,11 @@ extern int g_temp5_error;
 extern int g_fatal_error;
 u8 snd_buf[128] = {0};
 
+u8 snd_buf[128] = {0};
+
+u8 g_ota_bin_md5[SSL_MAX_LEN] = {0};
+u8 g_ota_package_md5[SSL_MAX_LEN] = {0};
+
 void UART1_SendData(u8 *data, u16 num);
 
 void uart_init(u32 bound){
@@ -361,15 +366,23 @@ void run_cmd_from_usart(u8 *data, u16 num)
 				case 0x01:// OTA Start
 					// TBD: Clost FAN / MOT / HOT
 					g_ota_sta = 3;
+					g_ota_recv_sum = 0;
+					g_ota_pg_numid = 0;
+					g_ota_pg_nums = 0;
+					g_ota_bin_size = 0;
 					memcpy(snd_buf, data, num);
 					break;
 				// FE 40 02 + 3B-Size + 1B-TotalPackagesNum + MD5 + FF
 				case 0x02:// Total Packages & MD5
+					g_ota_pg_nums = data[6];
+					g_ota_bin_size = (data[3]<<16) + (data[4]<<8) + data[5];
+					memcpy(g_ota_bin_md5, data+7, SSL_MAX_LEN);
 					memcpy(snd_buf, data, num);
 					break;
 				// FE 40 03 + 1B-PackageNum + MD5 + FF
 				case 0x03:// Divided Package & MD5
 					g_ota_pg_numid = data[3];
+					memcpy(g_ota_package_md5, data+4, SSL_MAX_LEN);
 					memcpy(snd_buf, data, num);
 					break;
 				// FE 40 04 + 1B-RESULT + 1B-PackageNum + FF
@@ -389,12 +402,15 @@ void run_cmd_from_usart(u8 *data, u16 num)
 					g_ota_pg_numid = 0;
 					g_ota_pg_nums = 0;
 					g_ota_bin_size = 0;
+					memcpy(snd_buf, data, num);
 					break;
 				default:
+					snd_len = 0;
 					break;
 			}
 			break;
 		default:
+			snd_len = 0;
 			break;
 
 	}
