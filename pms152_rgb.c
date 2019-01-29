@@ -218,6 +218,8 @@ void FPPA0(void)
 				if (f_In3_Trig) {
 					f_In3_Trig = 0;
 					
+					// To avoid bounce
+					// The time gap between two active must > 1s
 					if (!f_In3_disable) {
 						mode_In3++;
 						f_In3_disable = 1;
