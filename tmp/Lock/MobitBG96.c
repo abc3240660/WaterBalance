@@ -141,7 +141,9 @@ Cmd_Response_t SetDevFunctionality(Functionality_t mode)
 
 bool DevLocalRate(unsigned long *rate, Cmd_Status_t status)
 {
+    int i = 0;
     char cmd[16] = "";
+    char buf[16] = "";
 
     strcpy(cmd, DEV_LOCAL_RATE);
     if (status == READ_MODE) {
@@ -154,9 +156,9 @@ bool DevLocalRate(unsigned long *rate, Cmd_Status_t status)
             return true;
         }
     } else if (status == WRITE_MODE) {
-        for (int i = 0; i < sizeof(Band_list)/sizeof(Band_list[0]); i++) {
+        for (i = 0; i < sizeof(Band_list)/sizeof(Band_list[0]); i++) {
             if (*rate == Band_list[i]) {
-                char buf[16];
+                memset(buf, 0, 16);
                 sprintf(buf, "=%ld;&W", *rate);
                 strcat(cmd, buf);
                 if (sendAndSearch(cmd, RESPONSE_OK, 2)) {
@@ -683,6 +685,7 @@ bool SwitchAccessModes(unsigned int socket_index, Access_Mode_t mode)
 
 bool DevPingFunction(unsigned int socket_index, char *host)
 {
+    int j = 0;
     char cmd[128] = "";
     char buf[64] = "";
 
@@ -702,7 +705,7 @@ bool DevPingFunction(unsigned int socket_index, char *host)
                 p[i] = strtok(NULL, "\r\n\r\n");
             }
             p[i] = '\0';
-            for (int j = 0; j <= 4; j++) {
+            for (j = 0; j <= 4; j++) {
                 char *cs_buf = strstr(p[j], ": ");
                 char *ce_buf = strchr(p[j], ',');
                 if (ce_buf == NULL) {
@@ -994,7 +997,9 @@ Cmd_Response_t readResponseAndSearch_also(const char *test_str, const char *e_te
 
 Cmd_Response_t sendAndSearchChr(const char *command, const char test_chr, unsigned int timeout)
 {
-    for (int i = 0; i < 3; i++) {
+    int i = 0;
+
+    for (i = 0; i < 3; i++) {
         if (sendATcommand(command)) {
             if (readResponseAndSearchChr(test_chr, timeout) == SUCCESS_RESPONSE) {
                 return SUCCESS_RESPONSE;
@@ -1006,7 +1011,9 @@ Cmd_Response_t sendAndSearchChr(const char *command, const char test_chr, unsign
 
 Cmd_Response_t sendAndSearch(const char *command, const char *test_str, unsigned int timeout)
 {
-    for (int i = 0; i < 3; i++) {
+    int i = 0;
+
+    for (i = 0; i < 3; i++) {
         if (sendATcommand(command)) {
             if (readResponseAndSearch(test_str, timeout) == SUCCESS_RESPONSE) {
                 return SUCCESS_RESPONSE;
@@ -1018,9 +1025,10 @@ Cmd_Response_t sendAndSearch(const char *command, const char *test_str, unsigned
 
 Cmd_Response_t sendAndSearch_also(const char *command, const char *test_str, const char *e_test_str, unsigned int timeout)
 {
+    int i = 0;
     Cmd_Response_t resp_status = UNKNOWN_RESPONSE;
 
-    for (int i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++) {
         if (sendATcommand(command)) {
             resp_status = readResponseAndSearch_also(test_str, e_test_str, timeout);
             return resp_status;
@@ -1976,10 +1984,5 @@ SSL_Socket_Event_t WaitCheckSSLSocketEvent(char *event, unsigned int timeout)
             return SSL_SOCKET_RECV_EVENT;
         }
     }
-    return 0;
-}
-
-int main(void)
-{
     return 0;
 }

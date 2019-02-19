@@ -78,7 +78,7 @@ void FPPA0(void)
 
     BYTE    Key_FlagA;
     BYTE    Key_FlagB;
-    Key_FlagB = _FIELD(p_In3 | p_In12);
+    Key_FlagB = _FIELD(p_In3, p_In12);
     Key_FlagA = _FIELD(p_In6);
 
     BYTE    Sys_Flag = 0;
