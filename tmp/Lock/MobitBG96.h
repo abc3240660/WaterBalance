@@ -1,6 +1,6 @@
 /*
  * A library for Quectel BG96 Module
- * This file is about the BG96 AT Command list
+ * This file is about the BG96 API
  *
  * Copyright (c) 2019 Mobit technology inc.
  * @Author       : Damon
@@ -115,20 +115,19 @@ static const char GNSS_TURN_OFF[] = "+QGPSEND";
 static const char GNSS_GET_POSITION[] = "+QGPSLOC";
 static const char GNSS_ACQUIRE_NMEA[] = "+QGPSGNMEA";
 
-/////////////////////////////////// BG96 MACRO ///////////////////////////////////
-// For Common
+/////////////////////////////////// Wait Implement ///////////////////////////////////
+// For GPIO Ctrl
+#define LOW 0
+#define HIGH 1
+#define OUTPUT 1
 #define POWKEY_PIN  6
 #define RESET_PIN   5
 
+/////////////////////////////////// BG96 MACRO ///////////////////////////////////
+// For Common
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
-
-// TBD Check
-#define OUTPUT 1
-
-#define LOW 0
-#define HIGH 1
 
 typedef enum functionality {
     MINIMUM_FUNCTIONALITY = 0,
@@ -246,7 +245,6 @@ typedef enum socket_event {
     SOCKET_CONNECTION_FULL_EVENT = 5,
 } Socket_Event_t;
 
-
 typedef enum ssl_cipher_suites {
     TLS_RSA_WITH_AES_256_CBC_SHA = 0,
     TLS_RSA_WITH_AES_128_CBC_SHA = 1,
@@ -273,7 +271,7 @@ static const char ssl_ca_cert_name[] = "ca_cert.pem";
 static const char ssl_client_cert_name[] = "client_cert.pem";
 static const char ssl_client_key_name[] = "client_key.pem";
 
-// For Serial
+// For BG96 Serial
 #define RX_BUFFER_LENGTH  256
 #define UART_DEBUG
 
@@ -454,34 +452,34 @@ bool QueryLastErrorCode(char *err_code);
 Socket_Event_t WaitCheckSocketEvent(char *event, unsigned int timeout);
 
 // For Serial
-bool sendDataAndCheck(const char *data_buf, const char *ok_str, const char *err_str, unsigned int timeout);
+bool SendDataAndCheck(const char *data_buf, const char *ok_str, const char *err_str, unsigned int timeout);
 
-bool sendATcommand(const char *command);
+bool SendATcommand(const char *command);
 
-unsigned int readResponseByteToBuffer();
+unsigned int ReadResponseByteToBuffer();
 
-unsigned int readResponseToBuffer(unsigned int timeout);
+unsigned int ReadResponseToBuffer(unsigned int timeout);
 
-Cmd_Response_t readResponseAndSearch(const char *test_str, unsigned int timeout);
+Cmd_Response_t ReadResponseAndSearch(const char *test_str, unsigned int timeout);
 
-Cmd_Response_t readResponseAndSearchChr(const char test_chr, unsigned int timeout);
+Cmd_Response_t ReadResponseAndSearchChr(const char test_chr, unsigned int timeout);
 
-Cmd_Response_t readResponseAndSearch_also(const char *test_str, const char *e_test_str, unsigned int timeout);
+Cmd_Response_t ReadResponseAndSearch_multi(const char *test_str, const char *e_test_str, unsigned int timeout);
 
-Cmd_Response_t sendAndSearch(const char *command, const char *test_str, unsigned int timeout);
+Cmd_Response_t SendAndSearch(const char *command, const char *test_str, unsigned int timeout);
 
-Cmd_Response_t sendAndSearchChr(const char *command, const char test_chr, unsigned int timeout);
+Cmd_Response_t SendAndSearchChr(const char *command, const char test_chr, unsigned int timeout);
 
-Cmd_Response_t sendAndSearch_also(const char *command, const char *test_str, const char *e_test_str, unsigned int timeout);
+Cmd_Response_t SendAndSearch_multi(const char *command, const char *test_str, const char *e_test_str, unsigned int timeout);
 
-bool returnErrorCode(int *s_err_code);
+bool ReturnErrorCode(int *s_err_code);
 
-void cleanBuffer();
+void CleanBuffer();
 
-int serialAvailable();
+int IsRingBufferAvailable();
 
-char *searchStrBuffer(const char *test_str);
+char *SearchStrBuffer(const char *test_str);
 
-char *searchChrBuffer(const char test_chr);
+char *SearchChrBuffer(const char test_chr);
 
 #endif
