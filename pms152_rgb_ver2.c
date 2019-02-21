@@ -189,7 +189,7 @@ void FPPA0(void)
             }
 
             A = (PB ^ Key_FlagB) & _FIELD(p_In12);
-            if (! ZF) {
+            if (!ZF) {
                 //ButtonDown
                 if (!p_In12) {
                     if (--debounce_time_In12_lpress == 0) {
@@ -202,7 +202,7 @@ void FPPA0(void)
                 }
             } else {
                 if (debounce_time_In12_lpress < 195) {
-                    Key_FlagB ^= _FIELD(p_In12);
+                    // Key_FlagB ^= _FIELD(p_In12);
                     f_In12_Trig = 1;// short push
                 }
                 debounce_time_In12_lpress = 200;
