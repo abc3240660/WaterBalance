@@ -213,8 +213,6 @@ void FPPA0(void)
 
                 if (!f_In12_lock) {// unlocking -> lock
                     f_In12_lock = 1;// lock
-                } else {// default: locking -> unlock
-                    f_In12_lock = 0;// unlock
 
                     tm2_disable_500();
 
@@ -225,6 +223,8 @@ void FPPA0(void)
 
                     mode_In3 = 0;
                     mode_In3_last = 8;
+                } else {// default: locking -> unlock
+                    f_In12_lock = 0;// unlock
                 }
             }
 
@@ -570,6 +570,15 @@ void pwmg2_disable(void)
 // ratio = 102/256 = 0.4
 void tm2_enable_500()
 {
+#if 0
+	// Enable Timer2 PWM to 2KHz
+	tm2ct = 0x0;
+	tm2b = 0b0111_1100;// 124
+	//tm2s = 0b000_01111;// 15
+	tm2s = 0b000_00111;// 7
+	tm2c = 0b0001_1000;// CLK(=IHRC/2) | PA3 | Period | Disable Inverse
+#endif
+
     tm2ct = 0x0;
     tm2b = 0b0110_0110;// K=102
     tm2s = 0b0_01_11000;// S1=[6:5]=(01->4), S2=[4:0]=24
