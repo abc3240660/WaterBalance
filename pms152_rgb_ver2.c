@@ -38,19 +38,19 @@ BIT p_In3    :    PB.7;// Cmptor Input(0-Valid, 1-Invalid)
 BIT p_In6    :    PA.6;// B7 Enable/Disable Switch
 BIT p_In12   :    PB.0;// Key: LongPress - Whole ON/OFF, ShortPress - PP=PB0|PB7
 
-BIT p_Out8    :    PA.3;// TM2PWM White LED
-BIT p_Out9    :    PA.4;// PG1PWM R LED
-BIT p_Out10   :    PA.0;// PG0PWM G LED
-BIT p_Out14   :    PB.2;// PG2PWM B LED
+BIT p_Out5    :    PA.7;// TM2PWM White LED
+BIT p_Out8    :    PA.3;// PG1PWM R LED
+BIT p_Out9    :    PA.4;// PG0PWM G LED
+BIT p_Out10   :    PA.0;// PG2PWM B LED
 
 void FPPA0(void)
 {
     .ADJUST_IC    SYSCLK = IHRC/4// SYSCLK = IHRC/4 = 4MHz
 
+    $ p_Out5    Out, Low;// off
     $ p_Out8    Out, Low;// off
     $ p_Out9    Out, Low;// off
     $ p_Out10   Out, Low;// off
-    $ p_Out14   Out, Low;// off
 
     $ p_In3        In;
     $ p_In6        In;
@@ -58,7 +58,7 @@ void FPPA0(void)
 
     // 1/16M * 2^(9+1) = 64us
     // 1/16M * 2^(10+1) = 128
-    $ T16M        IHRC, /1, BIT10;// 16MHz/1 = 16MHz:the time base of T16.
+    $ T16M        IHRC, /1, BIT9;// 16MHz/1 = 16MHz:the time base of T16.
     $ TM2C        IHRC, Disable, Period, Inverse;
 
     paph= 0b_0100_0000;
@@ -97,6 +97,7 @@ void FPPA0(void)
     BIT     f_In12_LP_Trig  :    Sys_FlagX.2;
     BIT     f_In12_lock     :    Sys_FlagX.3;
     BIT     f_InPP_Trig     :    Sys_FlagX.4;
+    BIT     f_500HZ_on      :    Sys_FlagX.5;
 
     // 0~7 : A~H
     BYTE    mode_In3     = 0;
@@ -123,33 +124,37 @@ void FPPA0(void)
             INTRQ.T16 = 0;
 
             if (--count_10ms == 0) {
-                // count_10ms = 156;// 64us*156=10ms
-                count_10ms = 78;// 128*78=10ms
+                count_10ms = 156;// 64us*156=10ms
+                //count_10ms = 78;// 128*78=10ms
                 f_10ms_Trig = 1;
             }
 
             if (--count_16ms == 0) {
-                // count_16ms = 250;// 64uS*250=16ms
-                count_16ms = 125;// 128uS*125=16ms
+                count_16ms = 250;// 64uS*250=16ms
+                //count_16ms = 125;// 128uS*125=16ms
                 f_16ms_Trig = 1;
             }
         }
 
-#if 0// IO create 40% ratio
+#if 1// IO create 40% ratio
         // 1 -> 32 -> 1
         // 1:  Switch to High
         // 14: Switch to Low
         // 1 -> 13 + 14
-        if (count_500hz <= 13) {
-            // High Level
-        } else {
-            // Low Level
-            // 14 -> 32 + 1
-            if (32 == count_500hz) {
-                count_500hz = 0;
+        if (f_500HZ_on) {
+            if (count_500hz <= 13) {
+                // High Level
+                p_Out5 = 1;
+            } else {
+                // Low Level
+                p_Out5 = 0;
+                // 14 -> 32 + 1
+                if (32 == count_500hz) {
+                    count_500hz = 0;
+                }
             }
+            count_500hz++;
         }
-        count_500hz++;
 #endif
 
         if (f_10ms_Trig) {// every 10ms
@@ -214,12 +219,13 @@ void FPPA0(void)
                 if (!f_In12_lock) {// unlocking -> lock
                     f_In12_lock = 1;// lock
 
-                    tm2_disable_500();
+                    f_500HZ_on = 0;
+                    count_500hz = 1;
 
+                    p_Out5  = 0;
                     p_Out8  = 0;
-                    p_Out9  = 0;
+                    p_Out9 = 0;
                     p_Out10 = 0;
-                    p_Out14 = 0;
 
                     mode_In3 = 0;
                     mode_In3_last = 8;
@@ -291,9 +297,9 @@ void FPPA0(void)
                 }
             }
 
-            if (f_In6_lock) {
-                continue;
-            }
+            //if (f_In6_lock) {
+            //    continue;
+            //}
 
             // PWM RatioDuty = ((0~249)+1) / 250
             // PINX: Max 100%
@@ -304,46 +310,49 @@ void FPPA0(void)
             //          (0+1) / 250 = 0.4%
             if (mode_In3 != mode_In3_last) {
                 if (0 == mode_In3) {
-                    tm2_enable_500();
-                    p_Out9  = 0;
+                    f_500HZ_on = 1;
+
+                    p_Out8  = 0;
+                    p_Out9 = 0;
                     p_Out10 = 0;
-                    p_Out14 = 0;
                 } if (1 == mode_In3) {
-                    tm2_disable_500();
-                    p_Out8  = 1;
-                    p_Out9  = 0;
+                    f_500HZ_on = 0;
+                    count_500hz = 1;
+
+                    p_Out5  = 1;
+                    p_Out8  = 0;
+                    p_Out9 = 0;
                     p_Out10 = 0;
-                    p_Out14 = 0;
                 } if (2 == mode_In3) {
-                    p_Out8  = 0;
-                    p_Out9  = 1;
+                    p_Out5  = 0;
+                    p_Out8  = 1;
+                    p_Out9 = 0;
                     p_Out10 = 0;
-                    p_Out14 = 0;
                 } if (3 == mode_In3) {
+                    p_Out5  = 0;
                     p_Out8  = 0;
-                    p_Out9  = 0;
-                    p_Out10 = 1;
-                    p_Out14 = 0;
+                    p_Out9 = 1;
+                    p_Out10 = 0;
                 } if (4 == mode_In3) {
+                    p_Out5  = 0;
                     p_Out8  = 0;
-                    p_Out9  = 0;
-                    p_Out10 = 0;
-                    p_Out14 = 1;
+                    p_Out9 = 0;
+                    p_Out10 = 1;
                 } if (5 == mode_In3) {
-                    p_Out8  = 0;
-                    p_Out9  = 1;
-                    p_Out10 = 1;
-                    p_Out14 = 0;
-                } if (6 == mode_In3) {
-                    p_Out8  = 0;
-                    p_Out9  = 0;
-                    p_Out10 = 1;
-                    p_Out14 = 1;
-                } if (7 == mode_In3) {
-                    p_Out8  = 0;
-                    p_Out9  = 1;
+                    p_Out5  = 0;
+                    p_Out8  = 1;
+                    p_Out9 = 1;
                     p_Out10 = 0;
-                    p_Out14 = 1;
+                } if (6 == mode_In3) {
+                    p_Out5  = 0;
+                    p_Out8  = 0;
+                    p_Out9 = 1;
+                    p_Out10 = 1;
+                } if (7 == mode_In3) {
+                    p_Out5  = 0;
+                    p_Out8  = 1;
+                    p_Out9 = 0;
+                    p_Out10 = 1;
                 }
 
                 mode_In3_last = mode_In3;
