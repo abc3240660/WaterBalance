@@ -251,7 +251,12 @@ void FPPA0(void)
                 }
             }
         }
-
+		
+        // While Switch ON/OFF
+        if (f_In12_lock) {
+            continue;
+        }
+			
         if (f_In6_lock) {// PB7 Disable, Only PB0 switch mode
             if (f_In12_Trig) {
                 f_In12_Trig = 0;
