@@ -165,7 +165,7 @@ void FPPA0(void)
                 if (GPCC.6) {// PB7 > Vinternal R ---> GPCC.6=0
                     if (--debounce_time_In3 == 0) {
                         f_cmptor_valid = 1;
-						if (!f_In6_lock) {
+						if (!p_In6) {
 							f_In3_Trig = 1;
 						}
                         debounce_time_In3 = 2;
@@ -259,7 +259,7 @@ void FPPA0(void)
             continue;
         }
 			
-        if (f_In6_lock) {// PB7 Disable, Only PB0 switch mode
+        if (p_In6) {// PB7 Disable, Only PB0 switch mode
             if (f_In12_Trig) {
                 f_In12_Trig = 0;
 
