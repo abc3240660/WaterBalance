@@ -165,7 +165,9 @@ void FPPA0(void)
                 if (GPCC.6) {// PB7 > Vinternal R ---> GPCC.6=0
                     if (--debounce_time_In3 == 0) {
                         f_cmptor_valid = 1;
-                        f_In3_Trig = 1;
+						if (!f_In6_lock) {
+							f_In3_Trig = 1;
+						}
                         debounce_time_In3 = 2;
                     }
                 } else {//ButtonUp
