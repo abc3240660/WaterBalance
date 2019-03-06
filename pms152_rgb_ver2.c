@@ -87,13 +87,13 @@ void FPPA0(void)
     BIT     f_In2_Trig      :    Sys_Flag.2;
     BIT     f_In3_Trig      :    Sys_Flag.3;
     BIT     f_In6_Trig      :    Sys_Flag.4;
-    BIT     f_In6_lock      :    Sys_Flag.5;
+    BIT     f_In12_lock_spress      :    Sys_Flag.5;
     BIT     f_cmptor_valid  :    Sys_Flag.6;
     BIT     f_Out12_value   :    Sys_Flag.7;
 
     BYTE    Sys_FlagX = 0;
     BIT     f_In3_disable   :    Sys_FlagX.0;
-    BIT     f_In12_Trig     :    Sys_FlagX.1;
+    BIT     f_In12_SP_Trig     :    Sys_FlagX.1;
     BIT     f_In12_LP_Trig  :    Sys_FlagX.2;
     BIT     f_In12_lock     :    Sys_FlagX.3;
     BIT     f_InPP_Trig     :    Sys_FlagX.4;
@@ -115,7 +115,7 @@ void FPPA0(void)
     BYTE    debounce_time_In12   =    4;// Key debounce time = 40ms
     BYTE    debounce_time_In12_lpress = 200;// Key debounce time = 2s
 
-    f_In6_lock = 1;
+    f_In12_lock_spress = 1;
     f_In12_lock = 1;
     led_mode_chg_tm = LED_CHG_TM;
 
@@ -165,9 +165,7 @@ void FPPA0(void)
                 if (GPCC.6) {// PB7 > Vinternal R ---> GPCC.6=0
                     if (--debounce_time_In3 == 0) {
                         f_cmptor_valid = 1;
-						if (!p_In6) {
-							f_In3_Trig = 1;
-						}
+                        f_In3_Trig = 1;
                         debounce_time_In3 = 2;
                     }
                 } else {//ButtonUp
@@ -176,23 +174,6 @@ void FPPA0(void)
                 }
             } else {
                 debounce_time_In3 = 2;
-            }
-
-            A = (PA ^ Key_FlagA) & _FIELD(p_In6);
-            if (!ZF) {
-                //ButtonDown
-                if (!p_In6) {
-                    if (--debounce_time_In6 == 0) {
-                        Key_FlagA ^= _FIELD(p_In6);
-                        f_In6_Trig = 1;
-                        debounce_time_In6 = 4;
-                    }
-                } else {//ButtonUp
-                    f_In6_Trig = 0;
-                    Key_FlagA ^= _FIELD(p_In6);
-                }
-            } else {
-                debounce_time_In6 = 4;
             }
 
             A = (PB ^ Key_FlagB) & _FIELD(p_In12);
@@ -210,7 +191,7 @@ void FPPA0(void)
             } else {
                 if (debounce_time_In12_lpress < 195) {
                     // Key_FlagB ^= _FIELD(p_In12);
-                    f_In12_Trig = 1;// short push
+                    f_In12_SP_Trig = 1;// short push
                 }
                 debounce_time_In12_lpress = 200;
             }
@@ -241,72 +222,51 @@ void FPPA0(void)
                 continue;
             }
 
-            if (f_In6_Trig) {
-                f_In6_Trig = 0;
+            if (f_In12_SP_Trig) {
+                f_In12_SP_Trig = 0;
 
-                if (!f_In6_lock) {// unlocking
-                    f_In6_lock = 1;// lock
+                if (!f_In12_lock_spress) {// unlocking
+                    f_In12_lock_spress = 1;// lock
                 } else {// locking
-                    f_In6_lock = 0;// unlock
+                    f_In12_lock_spress = 0;// unlock
                     f_In3_disable = 1;
                     in3_disable_cnt = 0;
                 }
             }
         }
-		
-        // While Switch ON/OFF
-        if (f_In12_lock) {
-            continue;
-        }
-			
-        if (p_In6) {// PB7 Disable, Only PB0 switch mode
-            if (f_In12_Trig) {
-                f_In12_Trig = 0;
 
-                mode_In3++;
-
-                if (8 == mode_In3) {
-                    mode_In3 = 0;
-                }
-            }
-        } else {// PB7|PB0 switch mode
-            if (f_In3_Trig) {
-                f_In3_Trig = 0;
-
-                // To avoid bounce
-                // The time gap between two active must > 1s
-                if (!f_In3_disable) {
-                    mode_In3++;
-                    f_In3_disable = 1;
-                    in3_disable_cnt = 0;
-                }
-            }
-
-            if (f_In12_Trig) {
-                f_In12_Trig = 0;
-
-                mode_In3++;
-            }
-
-            if (8 == mode_In3) {
-                mode_In3 = 0;
-            }
-        }
+		if (!f_In12_lock_spress) {// unlocking
+			if (f_In3_Trig) {
+				f_In3_Trig = 0;
+					
+				// To avoid bounce
+				// The time gap between two active must > 1s
+				if (!f_In3_disable) {
+					mode_In3++;
+					f_In3_disable = 1;
+					in3_disable_cnt = 0;
+				}
+					
+				if (8 == mode_In3) {
+					mode_In3 = 0;
+				}
+			}
+		}
 
         if (f_16ms_Trig) {// every 16ms
             f_16ms_Trig = 0;
 
-            if (f_In3_disable) {
-                in3_disable_cnt++;
-
-                if (65 == in3_disable_cnt) {// 65*16 = 1040ms
-                    f_In3_disable = 0;
-                }
-            }
-
-            //if (f_In6_lock) {
-            //    continue;
-            //}
+			if (f_In3_disable) {
+				in3_disable_cnt++;
+				
+				if (65 == in3_disable_cnt) {// 65*16 = 1040ms
+					f_In3_disable = 0;
+				}
+			}
+			
+			if (f_In12_lock_spress) {
+				continue;
+			}
 
             // PWM RatioDuty = ((0~249)+1) / 250
             // PINX: Max 100%
