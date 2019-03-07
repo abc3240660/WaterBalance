@@ -115,7 +115,7 @@ void FPPA0(void)
     BYTE    debounce_time_In12   =    4;// Key debounce time = 40ms
     BYTE    debounce_time_In12_lpress = 200;// Key debounce time = 2s
 
-    f_In12_lock_spress = 1;
+    f_In12_lock_spress = 0;
     f_In12_lock = 1;
     led_mode_chg_tm = LED_CHG_TM;
 
@@ -264,6 +264,11 @@ void FPPA0(void)
 				}
 			}
 			
+            // While Switch ON/OFF
+            if (f_In12_lock) {
+                continue;
+            }
+
 			if (f_In12_lock_spress) {
 				continue;
 			}
