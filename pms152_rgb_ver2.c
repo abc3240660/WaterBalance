@@ -235,6 +235,11 @@ void FPPA0(void)
             }
         }
 
+        // While Switch ON/OFF
+        if (f_In12_lock) {
+            continue;
+        }
+
 		if (!f_In12_lock_spress) {// unlocking
 			if (f_In3_Trig) {
 				f_In3_Trig = 0;
@@ -263,11 +268,6 @@ void FPPA0(void)
 					f_In3_disable = 0;
 				}
 			}
-			
-            // While Switch ON/OFF
-            if (f_In12_lock) {
-                continue;
-            }
 
 			if (f_In12_lock_spress) {
 				continue;
