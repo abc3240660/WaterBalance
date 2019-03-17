@@ -191,7 +191,9 @@ void FPPA0(void)
             } else {
                 if (debounce_time_In12_lpress < 195) {
                     // Key_FlagB ^= _FIELD(p_In12);
-                    f_In12_SP_Trig = 1;// short push
+					if (!f_In12_lock) {
+						f_In12_SP_Trig = 1;// short push
+					}
                 }
                 debounce_time_In12_lpress = 200;
             }
@@ -212,6 +214,9 @@ void FPPA0(void)
 
                     mode_In3 = 0;
                     mode_In3_last = 8;
+					
+					f_In3_Trig = 0;
+					f_In12_lock_spress = 0;
                 } else {// default: locking -> unlock
                     f_In12_lock = 0;// unlock
                 }
