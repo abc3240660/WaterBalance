@@ -108,8 +108,8 @@ void	FPPA0 (void)
 
 	BYTE	cnt_3s_time_startup 	= 0;// 
     BYTE	stepx = 0;
-    BYTE	start = 0;    
-
+    BYTE	start = 0;
+    
 	f_mode2 = 1;
 	f_2k_on = 0;
 
@@ -125,17 +125,17 @@ void	FPPA0 (void)
 			}
 
             count_l++;
-            
+
             if (100 == count_l) {
                 count_l = 0;
                 count_h++;
                 if (100 == count_h)
                     count_h = 0;
-			}
-		}
+            }
+        }
 
-		if (f_mode2) {
-            if (!f_pwm_mode) {// dutyratio = 50%
+        if (f_mode2) {
+            if (!f_pwm_mode) {// dutyratio = 40%
                 if ((0 == count_l)&&(0 == count_h)) {
                     if (f_V1_on) {
                         p_OutB_V1 = 1;
@@ -143,17 +143,19 @@ void	FPPA0 (void)
                     if (f_V3_on) {
                         p_OutA_V3 = 1;
                     }
-                    p_OutB_H1 = 0;
-                    p_OutA_V2 = 0;
-                } else if ((78 == count_l)&&(0 == count_h)) {
+                } else if ((62 == count_l)&&(0 == count_h)) {
                     p_OutB_V1 = 0;
                     p_OutA_V3 = 0;
+                } else if ((78 == count_l)&&(0 == count_h)) {
                     if (f_V2_on) {
                         p_OutA_V2 = 1;
                     }
                     if (f_H1_on) {
                         p_OutB_H1 = 1;
                     }
+                } else if ((40 == count_l)&&(1 == count_h)) {
+                    p_OutA_V2 = 0;
+                    p_OutB_H1 = 0;
                 } else if ((56 == count_l)&&(1 == count_h)) {
                     count_l = 0;
                     count_h = 0;
@@ -166,8 +168,6 @@ void	FPPA0 (void)
                     if (f_V3_on) {
                         p_OutA_V3 = 1;
                     }
-                    p_OutB_H1 = 0;
-                    p_OutA_V2 = 0;
                 } else if ((47 == count_l)&&(0 == count_h)) {
                     p_OutB_V1 = 0;
                     p_OutA_V3 = 0;
@@ -186,8 +186,7 @@ void	FPPA0 (void)
                     count_h = 0;
                 }
             }
-            }
-		}
+        }
 
 		while (t16_10ms)
 		{

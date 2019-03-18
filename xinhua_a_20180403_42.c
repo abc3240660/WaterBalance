@@ -39,7 +39,9 @@ void	FPPA0 (void)
 	// IN Pull-UP
     PBPH		=		_FIELD(p_InB_OD, p_InB_V, p_InB_H);
 
-	$ T16M		IHRC, /1, BIT10;			//	16MHz / 1 = 16MHz : the time base of T16.
+    // 1/16M * 2^(9+1) = 64us
+    // 1/16M * 2^(10+1) = 128
+    $ T16M      IHRC, /1, BIT9;// 16MHz/1 = 16MHz:the time base of T16.
 	$ TM2C		IHRC, Disable, Period, Inverse;
 
 	BYTE	Key_Flag;
@@ -60,6 +62,7 @@ void	FPPA0 (void)
 	BIT		f_led_flash	:	Sys_FlagB.2;
 	BIT		f_led_state	:	Sys_FlagB.3;
 	BIT		f_vj_on	:	Sys_FlagB.5;
+	BIT		f_pwm_mode	:	Sys_FlagB.6;
 	
 	BYTE	Sys_FlagC	=	0;
 	BIT		f_V1_on	:	Sys_FlagC.0;
@@ -117,50 +120,73 @@ void	FPPA0 (void)
 			INTRQ.T16		=	0;
 			If (--count1 == 0)					//	DZSN  count
 			{
-				count1		=	78;				//	128uS * 78 = 10 mS 
+				count1		=	156;				//	64uS * 156 = 10 mS 
 				t16_10ms	=	1;
 			}
 
-            // 1->78
             count_l++;
-            
+
             if (100 == count_l) {
                 count_l = 0;
                 count_h++;
                 if (100 == count_h)
                     count_h = 0;
-			}
-		}
-
-		if (f_mode2) {
-            if ((1 == count_l)&&(0 == count_h)) {
-                if (f_V1_on) {
-                    p_OutB_V1 = 1;
-                }
-                if (f_V3_on) {
-                    p_OutA_V3 = 1;
-                }
-//                p_OutB_H1 = 0;
-//                p_OutA_V2 = 0;
-            } else if ((34 == count_l)&&(0 == count_h)) {
-                p_OutB_V1 = 0;
-                p_OutA_V3 = 0;
-            } else if ((40 == count_l)&&(0 == count_h)) {
-                if (f_V2_on) {
-                    p_OutA_V2 = 1;
-                }
-                if (f_H1_on) {
-                    p_OutB_H1 = 1;
-                }
-
-            } else if ((73 == count_l)&&(0 == count_h)) {
-                p_OutA_V2 = 0;
-                p_OutB_H1 = 0;
-            } else if ((78 == count_l)&&(0 == count_h)) {
-                count_l = 0;
-                count_h = 0;
             }
-		}
+        }
+
+        if (f_mode2) {
+            if (!f_pwm_mode) {// dutyratio = 42%
+                if ((0 == count_l)&&(0 == count_h)) {
+                    if (f_V1_on) {
+                        p_OutB_V1 = 1;
+                    }
+                    if (f_V3_on) {
+                        p_OutA_V3 = 1;
+                    }
+                } else if ((66 == count_l)&&(0 == count_h)) {
+                    p_OutB_V1 = 0;
+                    p_OutA_V3 = 0;
+                } else if ((78 == count_l)&&(0 == count_h)) {
+                    if (f_V2_on) {
+                        p_OutA_V2 = 1;
+                    }
+                    if (f_H1_on) {
+                        p_OutB_H1 = 1;
+                    }
+                } else if ((44 == count_l)&&(1 == count_h)) {
+                    p_OutA_V2 = 0;
+                    p_OutB_H1 = 0;
+                } else if ((56 == count_l)&&(1 == count_h)) {
+                    count_l = 0;
+                    count_h = 0;
+                }
+            } else {// dutyratio = 30%
+                if ((0 == count_l)&&(0 == count_h)) {
+                    if (f_V1_on) {
+                        p_OutB_V1 = 1;
+                    }
+                    if (f_V3_on) {
+                        p_OutA_V3 = 1;
+                    }
+                } else if ((47 == count_l)&&(0 == count_h)) {
+                    p_OutB_V1 = 0;
+                    p_OutA_V3 = 0;
+                } else if ((78 == count_l)&&(0 == count_h)) {
+                    if (f_V2_on) {
+                        p_OutA_V2 = 1;
+                    }
+                    if (f_H1_on) {
+                        p_OutB_H1 = 1;
+                    }
+                } else if ((25 == count_l)&&(1 == count_h)) {
+                    p_OutA_V2 = 0;
+                    p_OutB_H1 = 0;
+                } else if ((56 == count_l)&&(1 == count_h)) {
+                    count_l = 0;
+                    count_h = 0;
+                }
+            }
+        }
 
 		while (t16_10ms)
 		{
@@ -281,6 +307,13 @@ void	FPPA0 (void)
 						Key_flag	^=	_FIELD(p_InB_OD);
 					}
 				} else {
+                    if (cnt_Key_10ms_1 < 245) {
+                        if (f_pwm_mode) {
+                            f_pwm_mode = 0;
+                        } else {
+                            f_pwm_mode = 1;
+                        }
+                    }
 					cnt_Key_10ms_1	=	250;
 				}
 
