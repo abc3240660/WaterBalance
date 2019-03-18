@@ -158,7 +158,7 @@ void	FPPA0 (void)
                     count_l = 0;
                     count_h = 0;
                 }
-            } else {// dutyratio = 30%
+            } else {// dutyratio = 44%
                 if ((0 == count_l)&&(0 == count_h)) {
                     if (f_V1_on) {
                         p_OutB_V1 = 1;
@@ -168,7 +168,7 @@ void	FPPA0 (void)
                     }
                     p_OutB_H1 = 0;
                     p_OutA_V2 = 0;
-                } else if ((47 == count_l)&&(0 == count_h)) {
+                } else if ((69 == count_l)&&(0 == count_h)) {
                     p_OutB_V1 = 0;
                     p_OutA_V3 = 0;
                 } else if ((78 == count_l)&&(0 == count_h)) {
@@ -178,7 +178,7 @@ void	FPPA0 (void)
                     if (f_H1_on) {
                         p_OutB_H1 = 1;
                     }
-                } else if ((25 == count_l)&&(1 == count_h)) {
+                } else if ((47 == count_l)&&(1 == count_h)) {
                     p_OutA_V2 = 0;
                     p_OutB_H1 = 0;
                 } else if ((56 == count_l)&&(1 == count_h)) {
