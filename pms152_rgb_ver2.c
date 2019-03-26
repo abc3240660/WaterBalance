@@ -104,11 +104,13 @@ void FPPA0(void)
     BYTE    mode_In3_last     = 8;
     BYTE    count_10ms    = 1;
     BYTE    count_16ms    = 1;
-    BYTE    count_500hz   = 1;
+	BYTE    count_1s     = 1;
+	BYTE    count_10s    = 1;
+	BYTE    count_500hz   = 1;
     BYTE    count_one_sec     = 0;
     BYTE    in3_disable_cnt    = 0;
     BYTE    led_mode_chg_tm     = 0;
-
+	
     // debounce_time = N*10ms
     BYTE    debounce_time_In3    =    2;// Key debounce time = 20ms
     BYTE    debounce_time_In6    =    4;// Key debounce time = 40ms
@@ -118,6 +120,8 @@ void FPPA0(void)
     f_In12_lock_spress = 0;
     f_In12_lock = 1;
     led_mode_chg_tm = LED_CHG_TM;
+
+	stopsys;
 
     while (1) {
         if (INTRQ.T16) {
@@ -217,6 +221,8 @@ void FPPA0(void)
 					
 					f_In3_Trig = 0;
 					f_In12_lock_spress = 0;
+					count_1s = 0;
+					count_10s = 0;
                 } else {// default: locking -> unlock
                     f_In12_lock = 0;// unlock
                 }
@@ -224,6 +230,19 @@ void FPPA0(void)
 
             // While Switch ON/OFF
             if (f_In12_lock) {
+				if (count_1s < 100) {
+					count_1s++;
+				}
+				if (100 == count_1s) {
+					count_1s = 0;
+					count_10s++;
+					if (10 == count_10s) {
+						count_10s = 0;
+						count_1s = 200;
+						
+						stopsys;
+					}
+				}
                 continue;
             }
 
