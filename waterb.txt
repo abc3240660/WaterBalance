@@ -105,7 +105,7 @@ Touch				*1	1.05
 									pointA 8	sumpointA	89
 									
 									
-// --------------------------------------------------Down
+// --------------------------------------------------Down 5K
 // -------------------------------
 // --- Part1
 R2 					*1	0.0022
@@ -126,34 +126,32 @@ QH1/V1/V2/V3		*4	0.06	###
 									sum	0.663	subsum	0.435
 
 // --- Part2
-U1					*1	0.25	###
+U1					*1	0.21	###
 U2					*1	0.37	###
-									sum	1.283	subsum	0.62
+									sum	1.243	subsum	0.58
 									pointA 19	sumpointA	66
 
-LS1-BEEP			*1	0.2											************
+LS1-BEEP			*1	0.15										************
 KEYs				*1	0.15	###
-J1/2/3+LINE			*1	0.4											************
-									pointB	17
-									sum	2.033	subsum	0.75
-
-SMT					*1	0.66	###
-PCB-MAIN			*1	0.23	###
-PCB-KEY				*1	0.35	###
-									sum	3.273	subsum	1.24
-LED					*1	0.03	###
-									pointB	2	sumpointB	21
-Person				*1	0.3											************
-									sum	3.603	subsum	0.33
-									
+J1/2/3+LINE			*1	0.3											************
 PWR LINE			*1	0.1											************
 PWR KEY				*1	0.1											************
-									sum	3.803	subsum	0.2
+LED					*1	0.03	###
+									pointB	19	sumpointB	21
+									sum	2.073	subsum	0.83
+
+SMT					*1	0.66	###
+PCB-MAIN			*1	0.30	###
+PCB-KEY				*1	0.35	###
+									sum	3.383	subsum	1.31
+
+Person				*1	0.3											************
+									sum	3.683	subsum	0.30
 
 // --- Part3 Touch
 C1					*1	0.009	###
 Touch				*1	1.05	###
-									sum	3.803+1.059-0.15+0.08SMT=4.792	subsum	1.059
+									sum	3.683+1.059-0.15+0.08SMT=4.672	subsum	1.059
 									pointA 8	sumpointA	74
 
 
@@ -181,32 +179,82 @@ QH1/V1/V2/V3		*4	0.06	###
 									sum	0.6916	subsum	0.435
 
 // --- Part2
-IC1					*1	0.25	###
-IC2					*1	0.95	###
-									sum	1.8196	subsum	1.2
+IC1					*1	0.21	###
+IC2					*1	0.91	###
+									sum	1.8116	subsum	1.12
 									pointA	22	sumpointA	81
 
-LS1-BEEP			*1	0.2
+LS1-BEEP			*1	0.15
 KEYs				*1	0.15	###
-J1/2/3+LINE			*1	0.4
-									pointB	17
-									sum	2.6416	subsum	0.75
-
-SMT					*1	0.81	###
-PCB-MAIN			*1	0.23	###
-PCB-KEY				*1	0.35	###
-									sum	4.0316	subsum	1.39
-LED					*1	0.03	###
-									pointB	2	sumpointB	21
-Person				*1	0.3
-									sum	4.3616	subsum	0.33
-									
+J1/2/3+LINE			*1	0.3
 PWR LINE			*1	0.1
 PWR KEY				*1	0.1
-									sum	4.5616	subsum	0.2
+LED					*1	0.03	###
+									pointB	19	sumpointB	21
+									sum	2.6416	subsum	0.83
+
+SMT					*1	0.81	###
+PCB-MAIN			*1	0.30	###
+PCB-KEY				*1	0.35	###
+									sum	4.1016	subsum	1.46
+
+Person				*1	0.3
+									sum	4.4016	subsum	0.30
+									
+
 
 // --- Part3 Touch
 C1					*1	0.009	###
 Touch				*1	1.05										************
-									sum	5.1366+1.059-0.15+0.08SMT=5.5506	subsum	1.059
+									sum	4.4016+1.059-0.15+0.08SMT=5.3906	subsum	1.059
 									pointA 8	sumpointA	89
+									
+									
+// --------------------------------------------------Down 50K
+// -------------------------------
+// --- Part1
+R2 					*1	0.0022
+R3/5/7/8/9/10 		*6	0.0022
+R1/4				*2	0.003
+R11/12				*2	0.0022
+R6					*1	0.0022
+C1					*1	0.009
+C2/C3				*2	0.085
+									pointA	30
+C4-DIP				*1	0.021
+									pointB	2
+									sum	0.200	subsum	0.200	###
+L1-4R7				*1	0.13										************
+QBZ1				*1	0.03	###
+QH1/V1/V2/V3		*4	0.06	###
+									pointA	17
+									sum	0.600	subsum	0.4
+
+// --- Part2
+U1					*1	0.20	###
+U2					*1	0.34	###
+									sum	1.140	subsum	0.54
+									pointA 19	sumpointA	66
+
+LS1-BEEP			*1	0.14										************
+KEYs				*1	0.13	###
+J1/2/3+LINE			*1	0.27										************
+PWR LINE			*1	0.09										************
+PWR KEY				*1	0.09										************
+LED					*1	0.03	###
+									pointB	19	sumpointB	21
+									sum	1.890	subsum	0.75
+
+SMT					*1	0.66	###
+PCB-MAIN			*1	0.27	###
+PCB-KEY				*1	0.32	###
+									sum	3.14	subsum	1.25
+
+Person				*1	0.3											************
+									sum	3.44	subsum	0.30
+
+// --- Part3 Touch
+C1					*1	0.009	###
+Touch				*1	0.95	###
+									sum	3.44+1.059-0.15+0.08SMT=4.41	subsum	1.04
+									pointA 8	sumpointA	74
