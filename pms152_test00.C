@@ -207,7 +207,7 @@ void	FPPA0 (void)
 #endif
 			if (!f_ev1527_ok) {
 				if (!p_InB_OD) {// LOW
-					p_InA_V = 0;
+//					p_InA_V = 0;
 					always_low_cnt++;
 
 					if (always_low_cnt >= 141) {
@@ -223,7 +223,7 @@ void	FPPA0 (void)
 
 					f_last_level=0;
 				} else {
-					p_InA_V = 1;
+//					p_InA_V = 1;
 
 					if (!f_last_level) {
 #if 0
@@ -248,7 +248,7 @@ void	FPPA0 (void)
 								always_high_cnt=0;
 								dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
 							} else {
-#if 0
+#if 1
 								if (0 == dat_bit_cnt) {
 									p_InA_V = 1;
 								}
@@ -285,7 +285,7 @@ void	FPPA0 (void)
 								always_high_cnt=0;
 								dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
 							} else {
-#if 0
+#if 1
 								if (0 == dat_bit_cnt) {
 									p_InA_V = 1;
 								}
@@ -364,7 +364,7 @@ void	FPPA0 (void)
 					f_last_level=1;
 				}
 			} else {
-//				p_InA_V = 0;
+				p_InA_V = 0;
 			}
 			
 			if (f_ev1527_ok) {
