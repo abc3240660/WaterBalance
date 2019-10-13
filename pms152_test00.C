@@ -359,6 +359,7 @@ void	FPPA0 (void)
 			
 			if (f_ev1527_ok) {
 				f_2k_on = 1;
+				f_ev1527_ok = 0;
 			}
 
 			if (--count1 == 0)
