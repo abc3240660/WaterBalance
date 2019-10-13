@@ -37,14 +37,15 @@ void	FPPA0 (void)
 	$	p_InA_VJ		    In;
 //	$	p_InA_V		        In;
 	$	p_InA_V		        Out, Low;// off
-	$	p_InA_H		        In;
+//	$	p_InA_H		        In;
+	$	p_InA_H		        Out, Low;// off
     $	p_InA_QV2		    In;
     $	p_InB_QV3		    In;
 
 	// IN Pull-UP
     PBPH		=		_FIELD(p_InB_OD);
 //	PAPH		=		_FIELD(p_InA_V, p_InA_H);
-	PAPH		=		_FIELD(p_InA_H);
+//	PAPH		=		_FIELD(p_InA_H);
 
 #ifdef USE_10K
 	$ T16M		IHRC, /4, BIT9;				// 256us
@@ -206,6 +207,7 @@ void	FPPA0 (void)
 #endif
 			if (!f_ev1527_ok) {
 				if (!p_InB_OD) {// LOW
+					p_InA_V = 0;
 					always_low_cnt++;
 
 					if (always_low_cnt >= 141) {
@@ -221,6 +223,8 @@ void	FPPA0 (void)
 
 					f_last_level=0;
 				} else {
+					p_InA_V = 1;
+
 					if (!f_last_level) {
 #if 0
 						if (0 == count_x) {
@@ -234,14 +238,17 @@ void	FPPA0 (void)
 						// always_high_cnt=1->2->3, 3-1=2: [200us,300us)
 						// always_high_cnt=1->2->3->4->5, 5-1=4: [400us,500us)
 						// always_high_cnt=[3,5] = [200us,500us)
-						if (((always_high_cnt>=3)&&(always_high_cnt<=5))&&((always_low_cnt>=110)&&(always_low_cnt<=131))) {
+						if (((always_high_cnt>=2)&&(always_high_cnt<=5))&&((always_low_cnt>=100)&&(always_low_cnt<=131))) {
 							dat_bit_cnt=0; f_sync_ok=1; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
-						} else if ((f_sync_ok)&&((always_low_cnt>=10)&&(always_low_cnt<=15))) {
-							if ((always_high_cnt<3) || (always_high_cnt>5)) {
+//							p_InA_V = 1;
+						} else if ((f_sync_ok)&&((always_low_cnt>=8)&&(always_low_cnt<=15))) {
+							if ((always_high_cnt<2) || (always_high_cnt>5)) {
+								p_InA_H = 1;
 								always_low_cnt=0;
 								always_high_cnt=0;
 								dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
 							} else {
+#if 0
 								if (0 == dat_bit_cnt) {
 									p_InA_V = 1;
 								}
@@ -257,7 +264,7 @@ void	FPPA0 (void)
 								if (dat_bit_cnt >= 20) {
 									p_InA_V = 0;
 								}
-
+#endif
 								if (23 == dat_bit_cnt) {
 									ev1527_byte1=tmp_byte1;ev1527_byte2=tmp_byte2;
 									ev1527_byte3=tmp_byte3;ev1527_byte4=tmp_byte4;
@@ -271,12 +278,14 @@ void	FPPA0 (void)
 									dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
 								}
 							}
-						} else if ((f_sync_ok)&&((always_low_cnt>=3)&&(always_low_cnt<=5))) {
-							if ((always_high_cnt<10) || (always_high_cnt>15)) {
+						} else if ((f_sync_ok)&&((always_low_cnt>=2)&&(always_low_cnt<=5))) {
+							if ((always_high_cnt<8) || (always_high_cnt>15)) {
+								p_InA_H = 1;
 								always_low_cnt=0;
 								always_high_cnt=0;
 								dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
 							} else {
+#if 0
 								if (0 == dat_bit_cnt) {
 									p_InA_V = 1;
 								}
@@ -292,7 +301,7 @@ void	FPPA0 (void)
 								if (dat_bit_cnt >= 20) {
 									p_InA_V = 1;
 								}
-
+#endif
 								switch (dat_bit_cnt) {
 									case 0 : { tmp_byte1=tmp_byte1 | 0B10000000; break; }
 									case 1 : { tmp_byte1=tmp_byte1 | 0B01000000; break; }
@@ -334,6 +343,7 @@ void	FPPA0 (void)
 								}
 							}
 						} else {
+							p_OutB_LED = 1;
 							dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
 						}
 
@@ -354,7 +364,7 @@ void	FPPA0 (void)
 					f_last_level=1;
 				}
 			} else {
-				p_InA_V = 0;
+//				p_InA_V = 0;
 			}
 			
 			if (f_ev1527_ok) {
