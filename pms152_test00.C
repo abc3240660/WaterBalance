@@ -33,15 +33,18 @@ void	FPPA0 (void)
     $	p_OutB_LED		    Out, Low;// off
 
 	$	p_InB_OD		    In;
+//	$	p_InB_OD		    Out, Low;// off
 	$	p_InA_VJ		    In;
-	$	p_InA_V		        In;
+//	$	p_InA_V		        In;
+	$	p_InA_V		        Out, Low;// off
 	$	p_InA_H		        In;
     $	p_InA_QV2		    In;
     $	p_InB_QV3		    In;
 
 	// IN Pull-UP
     PBPH		=		_FIELD(p_InB_OD);
-	PAPH		=		_FIELD(p_InA_V, p_InA_H);
+//	PAPH		=		_FIELD(p_InA_V, p_InA_H);
+	PAPH		=		_FIELD(p_InA_H);
 
 #ifdef USE_10K
 	$ T16M		IHRC, /4, BIT9;				// 256us
@@ -90,6 +93,7 @@ void	FPPA0 (void)
 	BIT		f_last_level	:	Sys_FlagD.4;
 	BIT		f_sync_ok		:	Sys_FlagD.5;
 	BIT		f_ev1527_ok		:	Sys_FlagD.6;
+	BIT		f_last_xlevel	:	Sys_FlagD.7;
 	
 //	pmode	Program_Mode;
 //	fppen	=	0xFF;
@@ -150,6 +154,8 @@ void	FPPA0 (void)
 
 	f_mode2 = 1;
 	f_2k_on = 1;
+	
+	p_InA_V = 0;
 
 	while (1)
 	{
@@ -166,11 +172,15 @@ void	FPPA0 (void)
 				p_OutB_V2 = 1;
 			}
 #endif
-#if 1
+#if 0
+//			f_2k_on = 1;
+
 			if (!p_InB_OD) {// LOW
 				p_OutB_V2 = 0;
+				p_InA_V = 0;
 			} else {
 				p_OutB_V2 = 1;
+				p_InA_V = 1;
 //				f_2k_on = 1;
 			}
 #if 0
@@ -194,8 +204,8 @@ void	FPPA0 (void)
 			}
 #endif
 #endif
-			if (f_ev1527_ok) {
-				if (!p_InB_QV3) {// LOW
+			if (!f_ev1527_ok) {
+				if (!p_InB_OD) {// LOW
 					always_low_cnt++;
 
 					if (always_low_cnt >= 141) {
@@ -232,6 +242,22 @@ void	FPPA0 (void)
 								always_high_cnt=0;
 								dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
 							} else {
+								if (0 == dat_bit_cnt) {
+									p_InA_V = 1;
+								}
+
+								if (10 == dat_bit_cnt) {
+									p_InA_V = 0;
+								}
+
+								if (15 == dat_bit_cnt) {
+									p_InA_V = 1;
+								}
+								
+								if (dat_bit_cnt >= 20) {
+									p_InA_V = 0;
+								}
+
 								if (23 == dat_bit_cnt) {
 									ev1527_byte1=tmp_byte1;ev1527_byte2=tmp_byte2;
 									ev1527_byte3=tmp_byte3;ev1527_byte4=tmp_byte4;
@@ -251,6 +277,22 @@ void	FPPA0 (void)
 								always_high_cnt=0;
 								dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
 							} else {
+								if (0 == dat_bit_cnt) {
+									p_InA_V = 1;
+								}
+
+								if (10 == dat_bit_cnt) {
+									p_InA_V = 0;
+								}
+
+								if (15 == dat_bit_cnt) {
+									p_InA_V = 1;
+								}
+								
+								if (dat_bit_cnt >= 20) {
+									p_InA_V = 1;
+								}
+
 								switch (dat_bit_cnt) {
 									case 0 : { tmp_byte1=tmp_byte1 | 0B10000000; break; }
 									case 1 : { tmp_byte1=tmp_byte1 | 0B01000000; break; }
@@ -280,6 +322,7 @@ void	FPPA0 (void)
 											   ev1527_byte1=tmp_byte1;ev1527_byte2=tmp_byte2;
 											   ev1527_byte3=tmp_byte3;ev1527_byte4=tmp_byte4;
 											   f_ev1527_ok=1;
+											   f_2k_on = 1;
 											   break; 
 									}
 									default: { break; }
@@ -310,6 +353,8 @@ void	FPPA0 (void)
 
 					f_last_level=1;
 				}
+			} else {
+				p_InA_V = 0;
 			}
 			
 			if (f_ev1527_ok) {
