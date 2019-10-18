@@ -55,7 +55,7 @@ void FPPA0 (void)
     BIT        f_Key_Trig3      :    Sys_Flag.3;
     BIT        f_Key_Trig4      :    Sys_Flag.4;
     BIT        f_IN_QV2         :    Sys_Flag.5;
-    BIT        f_IN_QV3         :    Sys_Flag.6;
+    BIT        f_IN_QH2         :    Sys_Flag.6;
 
     BYTE    Sys_FlagB    =    0;
     BIT        f_mode2          :    Sys_FlagB.0;
@@ -68,46 +68,37 @@ void FPPA0 (void)
     BIT        f_V1_on          :    Sys_FlagC.0;
     BIT        f_V2_on          :    Sys_FlagC.1;
     BIT        f_H1_on          :    Sys_FlagC.2;
-    BIT        f_V3_on          :    Sys_FlagC.3;
+    BIT        f_H2_on          :    Sys_FlagC.3;
 
     BYTE    Sys_FlagD    =    0;
     BIT        f_last_V1_on     :    Sys_FlagD.0;
     BIT        f_last_V2_on     :    Sys_FlagD.1;
     BIT        f_last_H1_on     :    Sys_FlagD.2;
-    BIT        f_last_V3_on     :    Sys_FlagD.3;
+    BIT        f_last_H2_on     :    Sys_FlagD.3;
 
 //    pmode    Program_Mode;
 //    fppen    =    0xFF;
 
-    BYTE    t16_flag;
     BYTE    count1 = 1;
-    BYTE    count2 = 0;
-    BYTE    count3 = 0;
-    BYTE    count4 = 0;
     BYTE    count_l = 0;
     BYTE    count_h = 0;
     BYTE    last_vj_state = 8;
 
-    BYTE    cnt_Key_10ms_1    =    250;            //    Key debounce time = 40 mS
+    BYTE    cnt_Key_10ms_1    =    250;              //    Key debounce time = 40 mS
     BYTE    cnt_Key_10ms_2    =    4;                //    Key debounce time = 40 mS
     BYTE    cnt_Key_10ms_3    =    4;                //    Key debounce time = 40 mS
-    BYTE    cnt_Key_10ms_4    =    4;                //    Key debounce time = 40 mS
 
     BYTE    cnt_Key_10ms_3_mode2    =    250;                //    Key debounce time = 40 mS
     BYTE    cnt_Key_10ms_4_mode2    =    250;                //    Key debounce time = 40 mS
 
-    BYTE    cnt_3s_time_1     = 0;//
-    BYTE    cnt_3s_time_3     = 0;// CN1/V
-    BYTE    cnt_3s_time_4     = 0;// CN1/H
-    BYTE    cnt_3s_time_2k    = 0;// 2KHz
-    BYTE    cnt_3s_time_led   = 0;// 1Hz
-    BYTE    cnt_3s_time_2k_switch   = 0;// 2KHz
-    BYTE    cnt_3s_time_3_mode2     = 0;// CN1/V
-    BYTE    cnt_3s_time_4_mode2     = 0;// CN1/H
-    BYTE    cnt_3s_time_34_after_ms = 0;// time elipse after mode switch
-    BYTE    cnt_3s_time_startup     = 0;//
+    BYTE    cnt_3s_time_1       = 0;//
+    BYTE    cnt_3s_time_2k      = 0;// 2KHz
+    BYTE    cnt_3s_time_led     = 0;// 1Hz
+    BYTE    cnt_3s_time_startup = 0;//
 
     BYTE    stepx = 0;
+    BYTE    stepv = 0;
+    BYTE    steph = 0;
     BYTE    start = 0;
 
     BYTE    always_low_cnt = 0;
@@ -132,6 +123,24 @@ void FPPA0 (void)
 
     f_mode2 = 1;
     f_2k_on = 0;
+
+#if 0// TODO
+    if (p_InA_QV2) {// HIGH
+#endif
+    if (1) {
+        f_IN_QH2 = 1;
+    } else {
+        f_IN_QH2 = 0;
+    }
+
+#if 0// TODO
+    if (p_InA_QV2) {// HIGH
+#endif
+    if (1) {
+        f_IN_QV2 = 1;
+    } else {
+        f_IN_QV2 = 0;
+    }
 
     while (1) {
         if (INTRQ.T16) {// = 10KHz=100us
@@ -160,17 +169,17 @@ void FPPA0 (void)
                         always_low_cnt++;
 
                         if (always_low_cnt >= 141) {
-                            always_low_cnt=0;
-                            always_high_cnt=0;
-                            dat_bit_cnt=0; 
-                            f_sync_ok=0; 
-                            tmp_byte1=0; 
-                            tmp_byte2=0; 
-                            tmp_byte3=0; 
-                            tmp_byte4=0;
+                            always_low_cnt  = 0;
+                            always_high_cnt = 0;
+                            dat_bit_cnt = 0;
+                            f_sync_ok = 0;
+                            tmp_byte1 = 0;
+                            tmp_byte2 = 0;
+                            tmp_byte3 = 0;
+                            tmp_byte4 = 0;
                         }
 
-                        f_last_level=0;
+                        f_last_level = 0;
                     } else {
 //                        p_InB_V = 1;
 
@@ -188,12 +197,12 @@ void FPPA0 (void)
                             // always_high_cnt=1->2->3->4->5, 5-1=4: [400us,500us)
                             // always_high_cnt=[3,5] = [200us,500us)
                             if (((always_high_cnt>=2)&&(always_high_cnt<=5))&&((always_low_cnt>=100)&&(always_low_cnt<=131))) {
-                                dat_bit_cnt=0; f_sync_ok=1; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
+                                dat_bit_cnt = 0; f_sync_ok = 1; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
                             } else if ((f_sync_ok)&&((always_low_cnt>=8)&&(always_low_cnt<=15))) {
                                 if ((always_high_cnt<2) || (always_high_cnt>5)) {
-                                    always_low_cnt=0;
-                                    always_high_cnt=0;
-                                    dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
+                                    always_low_cnt  = 0;
+                                    always_high_cnt = 0;
+                                    dat_bit_cnt = 0; f_sync_ok = 0; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
                                 } else {
 #if 1
                                     if (0 == dat_bit_cnt) {
@@ -213,23 +222,23 @@ void FPPA0 (void)
                                     }
 #endif
                                     if (23 == dat_bit_cnt) {
-                                        ev1527_byte1=tmp_byte1;ev1527_byte2=tmp_byte2;
-                                        ev1527_byte3=tmp_byte3;ev1527_byte4=tmp_byte4;
-                                        f_ev1527_ok=1;
+                                        ev1527_byte1 = tmp_byte1; ev1527_byte2 = tmp_byte2;
+                                        ev1527_byte3 = tmp_byte3; ev1527_byte4 = tmp_byte4;
+                                        f_ev1527_ok = 1;
                                     }
 
                                     dat_bit_cnt++;
                                     if (dat_bit_cnt > 24) {
-                                        always_low_cnt=0;
-                                        always_high_cnt=0;
-                                        dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
+                                        always_low_cnt  = 0;
+                                        always_high_cnt = 0;
+                                        dat_bit_cnt = 0; f_sync_ok = 0; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
                                     }
                                 }
                             } else if ((f_sync_ok)&&((always_low_cnt>=2)&&(always_low_cnt<=5))) {
                                 if ((always_high_cnt<8) || (always_high_cnt>15)) {
-                                    always_low_cnt=0;
-                                    always_high_cnt=0;
-                                    dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
+                                    always_low_cnt  = 0;
+                                    always_high_cnt = 0;
+                                    dat_bit_cnt = 0; f_sync_ok = 0; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
                                 } else {
 #if 1
                                     if (0 == dat_bit_cnt) {
@@ -272,10 +281,10 @@ void FPPA0 (void)
                                         case 21: { tmp_byte4=tmp_byte4 | 0B01000000; break; }
                                         case 22: { tmp_byte4=tmp_byte4 | 0B00100000; break; }
                                         case 23: {
-                                                   tmp_byte4=tmp_byte4 | 0B00010000; 
-                                                   ev1527_byte1=tmp_byte1;ev1527_byte2=tmp_byte2;
-                                                   ev1527_byte3=tmp_byte3;ev1527_byte4=tmp_byte4;
-                                                   f_ev1527_ok=1;
+                                                   tmp_byte4 = tmp_byte4 | 0B00010000;
+                                                   ev1527_byte1 = tmp_byte1; ev1527_byte2 = tmp_byte2;
+                                                   ev1527_byte3 = tmp_byte3; ev1527_byte4 = tmp_byte4;
+                                                   f_ev1527_ok = 1;
                                                    f_2k_on = 1;
                                                    break;
                                         }
@@ -284,28 +293,28 @@ void FPPA0 (void)
 
                                     dat_bit_cnt++;
                                     if (dat_bit_cnt > 24) {
-                                        dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
+                                        dat_bit_cnt = 0; f_sync_ok = 0; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
                                     }
                                 }
                             } else {
-                                dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
+                                dat_bit_cnt = 0; f_sync_ok = 0; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
                             }
 
-                            always_low_cnt=0;
-                            always_high_cnt=0;
+                            always_low_cnt  = 0;
+                            always_high_cnt = 0;
                         } else {
                             // do nothing
                         }
 
                         if (always_high_cnt >= 16) {
-                            always_low_cnt=0;
-                            always_high_cnt=0;
-                            dat_bit_cnt=0; f_sync_ok=0; tmp_byte1=0; tmp_byte2=0; tmp_byte3=0; tmp_byte4=0;
+                            always_low_cnt  = 0;
+                            always_high_cnt = 0;
+                            dat_bit_cnt = 0; f_sync_ok = 0; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
                         }
 
                         always_high_cnt++;
 
-                        f_last_level=1;
+                        f_last_level = 1;
                     }
                 } else {
                     p_InB_V = 0;
@@ -332,14 +341,14 @@ void FPPA0 (void)
                 if (f_V1_on) {
                     p_OutA_V1 = 1;
                 }
-                if (f_V3_on) {
-                    // p_OutA_V3 = 1;
+                if (f_H2_on) {
+                    p_OutA_H2 = 1;
                 }
                 p_OutB_H1 = 0;
                 p_OutA_V2 = 0;
             } else if ((40 == count_l)&&(0 == count_h)) {
                 p_OutA_V1 = 0;
-                // p_OutA_V3 = 0;
+                p_OutA_H2 = 0;
                 if (f_V2_on) {
                     p_OutA_V2 = 1;
                 }
@@ -360,8 +369,6 @@ void FPPA0 (void)
                 cnt_3s_time_startup++;
             }
 
-//            if (50 == cnt_3s_time_startup) {
-//                f_2k_on = 1;
             if (65 == cnt_3s_time_startup) {
                 if (!f_mode2) {
                     p_OutB_H1    =    1;
@@ -370,7 +377,7 @@ void FPPA0 (void)
                 f_V1_on = 0;
                 f_V2_on = 0;
                 f_H1_on = 1;
-                f_V3_on = 0;
+                f_H2_on = 0;
                 stepx = 1;
                 f_2k_on = 1;
             } else if (110 == cnt_3s_time_startup) {
@@ -386,15 +393,6 @@ void FPPA0 (void)
                 }
             } else if (155 == cnt_3s_time_startup) {
                 if (2 == stepx) {
-#if 0// TODO
-                    if (p_InA_QV2) {// HIGH
-#endif
-                    if (1) {
-                        f_IN_QV2 = 1;
-                    } else {
-                        f_IN_QV2 = 0;
-                    }
-
                     if (f_IN_QV2) {
                         if (!f_mode2) {
                             p_OutA_V2 = 1;
@@ -412,21 +410,12 @@ void FPPA0 (void)
                  }
             } else if (200 == cnt_3s_time_startup) {
                 if ((3 == stepx) && (0 == start)) {
-#if 0// TODO
-                    if (p_InB_QV3) {// HIGH
-#endif
-                    if (1) {
-                        f_IN_QV3 = 1;
-                    } else {
-                        f_IN_QV3 = 0;
-                    }
-
-                    if (f_IN_QV3) {
+                    if (f_IN_QH2) {
                         if (!f_mode2) {
-                            // p_OutA_V3 = 1;
+                            p_OutA_H2 = 1;
                         }
 
-                        f_V3_on = 1;
+                        f_H2_on = 1;
 
                         stepx = 4;
                         f_2k_on = 1;
@@ -444,14 +433,21 @@ void FPPA0 (void)
                 if ((4 == stepx) && (0 == start)) {
                     f_V1_on = 0;
                     f_V2_on = 0;
-                    f_V3_on = 0;
+                    f_H2_on = 0;
 
                     p_OutA_V1 = 0;
                     p_OutA_V2 = 0;
-                    // p_OutA_V3 = 0;
+                    p_OutA_H2 = 0;
 
                     stepx = 1;
+                    stepv = 1;
                     start = 1;
+
+                    if (f_H1_on) {
+                        steph = 2;
+                    } else {
+                        steph = 1;
+                    }
                 }
             }
 
@@ -536,8 +532,9 @@ void FPPA0 (void)
                     } else if (2 == cnt_3s_time_1) {
                         f_led_flash = 0;
                         cnt_3s_time_1 = 0;
-                        // Disable Timer2 PWM
-                        tm2c = 0b0000_0000;// IHRC | PA3 | Period | Disable Inverse
+
+                        // Disable 2KHz
+                        pwmg1c = 0b0000_0000;// do not output PWM
 
                         p_OutB_2K    =    0;
                     }
@@ -560,8 +557,8 @@ void FPPA0 (void)
                                 // Disable all 100HZ PWM
                                 p_OutA_V1    =    0;
                                 p_OutA_V2    =    0;
-                                // p_OutA_V3    =    0;
                                 p_OutB_H1    =    0;
+                                p_OutA_H2    =    0;
 
                                 if (f_V1_on) {
                                     f_last_V1_on = 1;
@@ -581,23 +578,26 @@ void FPPA0 (void)
                                     f_last_H1_on = 0;
                                 }
 
-                                if (f_V3_on) {
-                                    f_last_V3_on = 1;
+                                if (f_H2_on) {
+                                    f_last_H2_on = 1;
                                 } else {
-                                    f_last_V3_on = 0;
+                                    f_last_H2_on = 0;
                                 }
 
                                 f_V1_on = 0;
                                 f_V2_on = 0;
                                 f_H1_on = 0;
-                                f_V3_on = 0;
+                                f_H2_on = 0;
 
-                                // Enable Timer2 PWM to 2KHz
-                                tm2ct = 0x0;
-                                tm2b = 0b0111_1100;// 124
-                                //tm2s = 0b000_01111;// 15
-                                tm2s = 0b000_00111;// 7
-                                tm2c = 0b0001_1000;// CLK(=IHRC/2) | PA3 | Period | Disable Inverse
+                                // Enable PWMG1C to 2KHz
+                                pwmgcubl = 0b0000_0000;
+                                pwmgcubh = 0b0001_1111;
+
+                                pwmg1dtl = 0b1000_0000;
+                                pwmg1dth = 0b0000_1111;
+
+                                pwmg1c = 0b0000_0010;// PB6 PWM
+                                pwmgclk = 0b1100_0000;// enable PWMG CLK(=SYSCLK/16)
                             }
                         } else {
                             if (last_vj_state != 0) {
@@ -606,8 +606,9 @@ void FPPA0 (void)
                                 f_vj_on = 0;
                                 f_led_flash = 0;
 
-                                // Disable Timer2 PWM
-                                tm2c = 0b0000_0000;// IHRC | PA3 | Period | Disable Inverse
+                                // Disable 2KHz
+                                pwmg1c = 0b0000_0000;// do not output PWM
+
                                 // p_OutB_LED = 1;
 
                                 if (f_last_V1_on) {
@@ -631,12 +632,12 @@ void FPPA0 (void)
 
                                     f_H1_on = 1;
                                 }
-                                if (f_last_V3_on) {
+                                if (f_last_H2_on) {
                                     if (!f_mode2) {
-                                        // p_OutA_V3    =    1;
+                                        p_OutA_H2    =    1;
                                     }
 
-                                    f_V3_on = 1;
+                                    f_H2_on = 1;
                                 }
                             }
                         }
@@ -651,15 +652,15 @@ void FPPA0 (void)
 
                     // L -> H
                     if (!p_InB_VJ) {
-                        if (1 == stepx) {
+                        if (1 == stepv) {
                             if (!f_mode2) {
                                 p_OutA_V1 = 1;
                             }
 
                             f_V1_on = 1;
 
-                            stepx = 2;
-                        } else if (2 == stepx) {
+                            stepv= 2;
+                        } else if (2 == stepv) {
 #if 0// TODO
                             if (p_InA_QV2) {// HIGH
 #endif
@@ -675,50 +676,21 @@ void FPPA0 (void)
                                 }
 
                                 f_V2_on = 1;
-                                stepx = 3;
+                                stepv = 3;
                             } else {
                                 f_V1_on = 0;
                                 p_OutA_V1 = 0;
 
-                                stepx = 1;
+                                stepv = 1;
                             }
-                        } else if (3 == stepx) {
-#if 0// TODO
-                            if (p_InB_QV3) {// HIGH
-#endif
-                            if (1) {
-                                f_IN_QV3 = 1;
-                            } else {
-                                f_IN_QV3 = 0;
-                            }
-
-                            if (f_IN_QV3) {
-                                if (!f_mode2) {
-                                    // p_OutA_V3 = 1;
-                                }
-
-                                f_V3_on = 1;
-
-                                stepx = 4;
-                            } else {
-                                f_V1_on = 0;
-                                f_V2_on = 0;
-
-                                p_OutA_V1 = 0;
-                                p_OutA_V2 = 0;
-
-                                stepx = 1;
-                            }
-                        } else if (4 == stepx) {
+                        } else if (3 == stepv) {
                             f_V1_on = 0;
                             f_V2_on = 0;
-                            f_V3_on = 0;
 
                             p_OutA_V1 = 0;
                             p_OutA_V2 = 0;
-                            // p_OutA_V3 = 0;
 
-                            stepx = 1;
+                            stepv = 1;
                         }
                     }
                 }
@@ -731,32 +703,36 @@ void FPPA0 (void)
 
                     // L -> H
                     if (!p_InB_VJ) {
-                        cnt_3s_time_4++;
+                        if (1 == steph) {
+                            if (!f_mode2) {
+                                p_OutB_H1 = 1;
+                            }
 
-                        if (1 == cnt_3s_time_4) {
-                            if (f_H1_on) {// Current is ON
+                            f_H1_on = 1;
+
+                            steph = 2;
+                        } else if (2 == steph) {
+                            if (f_IN_QH2) {
+                                if (!f_mode2) {
+                                    p_OutA_H2 = 1;
+                                }
+
+                                f_H2_on = 1;
+                                steph = 3;
+                            } else {
                                 f_H1_on = 0;
                                 p_OutB_H1 = 0;
-                            } else {// Current is OFF
-                                f_H1_on = 1;
 
-                                if (!f_mode2) {
-                                    p_OutB_H1 = 1;
-                                }
+                                steph = 1;
                             }
-                        } else if (2 == cnt_3s_time_4) {
-                            cnt_3s_time_4 = 0;
+                        } else if (3 == steph) {
+                            f_H1_on = 0;
+                            f_H2_on = 0;
 
-                            if (f_H1_on) {// Current is ON
-                                f_H1_on = 0;
-                                p_OutB_H1 = 0;
-                            } else {// Current is OFF
-                                f_H1_on = 1;
+                            p_OutA_H1 = 0;
+                            p_OutA_H2 = 0;
 
-                                if (!f_mode2) {
-                                    p_OutB_H1 = 1;
-                                }
-                            }
+                            steph = 1;
                         }
                     }
                 }
@@ -791,12 +767,15 @@ void FPPA0 (void)
 
             if (f_2k_on) {
                 if (0 == cnt_3s_time_2k) {
-                    // Enable Timer2 PWM to 2KHz
-                    tm2ct = 0x0;
-                    tm2b = 0b0111_1100;// 124
-                    //tm2s = 0b000_01111;// 15
-                    tm2s = 0b000_00111;// 7
-                    tm2c = 0b0001_1000;// CLK(=IHRC/2) | PA3 | Period | Disable Inverse
+                    // Enable PWMG0C to 2KHz
+                    pwmgcubl = 0b0000_0000;
+                    pwmgcubh = 0b0001_1111;
+
+                    pwmg1dtl = 0b1000_0000;
+                    pwmg1dth = 0b0000_1111;
+
+                    pwmg1c = 0b0000_0010;// PB6 PWM
+                    pwmgclk = 0b1100_0000;// enable PWMG CLK(=SYSCLK/16)
                 }
 
                 cnt_3s_time_2k++;
@@ -804,8 +783,9 @@ void FPPA0 (void)
                 if (10 == cnt_3s_time_2k) {
                     f_2k_on = 0;
                     cnt_3s_time_2k = 0;
-                    // Disable Timer2 PWM
-                    tm2c = 0b0000_0000;// IHRC | PA3 | Period | Disable Inverse
+
+                    // Disable 2KHz
+                    pwmg1c = 0b0000_0000;// do not output PWM
                     p_OutB_2K    =    0;
                 }
             }
