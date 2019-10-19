@@ -62,7 +62,10 @@ void FPPA0 (void)
     BIT        f_2k_on          :    Sys_FlagB.1;
     BIT        f_led_flash      :    Sys_FlagB.2;
     BIT        f_led_state      :    Sys_FlagB.3;
-    BIT        f_vj_on          :    Sys_FlagB.5;
+    BIT        f_vj_on          :    Sys_FlagB.4;
+	BIT		   f_sync_ok		:	 Sys_FlagB.5;
+	BIT		   f_last_level		:	 Sys_FlagB.6;
+	BIT		   f_ev1527_ok		:	 Sys_FlagB.7;
 
     BYTE    Sys_FlagC    =    0;
     BIT        f_V1_on          :    Sys_FlagC.0;
@@ -729,7 +732,7 @@ void FPPA0 (void)
                             f_H1_on = 0;
                             f_H2_on = 0;
 
-                            p_OutA_H1 = 0;
+                            p_OutB_H1 = 0;
                             p_OutA_H2 = 0;
 
                             steph = 1;

@@ -186,7 +186,6 @@ void	FPPA0 (void)
                     count_h = 0;
                 }
             }
-            }
 		}
 
 		while (t16_10ms)
