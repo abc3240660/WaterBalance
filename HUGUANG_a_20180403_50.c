@@ -108,7 +108,7 @@ void	FPPA0 (void)
     BYTE	stepx = 0;
     BYTE	start = 0;
     
-	f_mode2 = 1;
+	f_mode2 = 0;
 	f_2k_on = 0;
 
 	while (1)
