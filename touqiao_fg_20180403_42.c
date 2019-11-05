@@ -68,10 +68,6 @@ void    FPPA0 (void)
     BIT        f_V2_on          :    Sys_FlagC.1;
     BIT        f_H1_on          :    Sys_FlagC.2;
     BIT        f_V3_on          :    Sys_FlagC.3;
-    BIT        f_V1_onX         :    Sys_FlagC.4;
-    BIT        f_V2_onX         :    Sys_FlagC.5;
-    BIT        f_H1_onX         :    Sys_FlagC.6;
-    BIT        f_V3_onX         :    Sys_FlagC.7;
 
     BYTE    Sys_FlagD    =    0;
     BIT        f_last_V1_on     :    Sys_FlagD.0;
@@ -93,9 +89,10 @@ void    FPPA0 (void)
     BYTE    cnt_Key_10ms_4    =    250;      //    Key debounce time = 40 mS
 
     BYTE    cnt_3s_time_1     = 0;
-    BYTE    cnt_3s_time_4     = 0;// CN1/H
-    BYTE    cnt_3s_time_2k     = 0;// 2KHz
-    BYTE    cnt_3s_time_led = 0;// 1Hz
+    BYTE    cnt_3s_time_4     = 0;
+    BYTE    cnt_3s_time_2k    = 0;// 2KHz
+    BYTE    cnt_3s_time_led   = 0;// 1Hz
+    BYTE    flash_time_laser  = 255;
 
     BYTE    cnt_3s_time_startup     = 0;
     BYTE    stepx = 0;
@@ -113,6 +110,14 @@ void    FPPA0 (void)
             {
                 count1        =    156;                //    64uS * 156 = 10 mS 
                 t16_10ms    =    1;
+
+                if (f_vj_on) {
+                    flash_time_laser--;
+
+                    if (flash_time_laser <= 5) {
+                        flash_time_laser = 255;
+                    }
+                }
             }
 
             count_l++;
@@ -125,85 +130,80 @@ void    FPPA0 (void)
             }
         }
 
-        if (f_mode2) {
-            if (!f_pwm_mode) {// dutyratio = 42%
-                if ((0 == count_l)&&(0 == count_h)) {
-                    if (f_V1_on) {
-                        p_OutB_V1 = 1;
+        // if vj mode, laser ON 30ms then OFF 220ms
+        if (flash_time_laser >= 225) {
+            if (f_mode2) {
+                if (!f_pwm_mode) {// dutyratio = 42%
+                    if ((0 == count_l)&&(0 == count_h)) {
+                        if (f_V1_on) {
+                            p_OutB_V1 = 1;
+                        }
+                        if (f_V3_on) {
+                            p_OutA_V3 = 1;
+                        }
+                    } else if ((66 == count_l)&&(0 == count_h)) {
+                        p_OutB_V1 = 0;
+                        p_OutA_V3 = 0;
+                    } else if ((78 == count_l)&&(0 == count_h)) {
+                        if (f_V2_on) {
+                            p_OutA_V2 = 1;
+                        }
+                        if (f_H1_on) {
+                            p_OutB_H1 = 1;
+                        }
+                    } else if ((44 == count_l)&&(1 == count_h)) {
+                        p_OutA_V2 = 0;
+                        p_OutB_H1 = 0;
+                    } else if ((56 == count_l)&&(1 == count_h)) {
+                        count_l = 0;
+                        count_h = 0;
                     }
-                    if (f_V3_on) {
-                        p_OutA_V3 = 1;
+                } else {// dutyratio = 30%
+                    if ((0 == count_l)&&(0 == count_h)) {
+                        if (f_V1_on) {
+                            p_OutB_V1 = 1;
+                        }
+                        if (f_V3_on) {
+                            p_OutA_V3 = 1;
+                        }
+                    } else if ((47 == count_l)&&(0 == count_h)) {
+                        p_OutB_V1 = 0;
+                        p_OutA_V3 = 0;
+                    } else if ((78 == count_l)&&(0 == count_h)) {
+                        if (f_V2_on) {
+                            p_OutA_V2 = 1;
+                        }
+                        if (f_H1_on) {
+                            p_OutB_H1 = 1;
+                        }
+                    } else if ((25 == count_l)&&(1 == count_h)) {
+                        p_OutA_V2 = 0;
+                        p_OutB_H1 = 0;
+                    } else if ((56 == count_l)&&(1 == count_h)) {
+                        count_l = 0;
+                        count_h = 0;
                     }
-
-                    if (f_V1_onX) {
-                        p_OutB_V1 = 1;
-                    }
-                    if (f_V3_onX) {
-                        p_OutA_V3 = 1;
-                    }
-                } else if ((66 == count_l)&&(0 == count_h)) {
-                    p_OutB_V1 = 0;
-                    p_OutA_V3 = 0;
-                } else if ((78 == count_l)&&(0 == count_h)) {
-                    if (f_V2_on) {
-                        p_OutA_V2 = 1;
-                    }
-                    if (f_H1_on) {
-                        p_OutB_H1 = 1;
-                    }
-
-                    if (f_V2_onX) {
-                        p_OutA_V2 = 1;
-                    }
-                    if (f_H1_onX) {
-                        p_OutB_H1 = 1;
-                    }
-                } else if ((44 == count_l)&&(1 == count_h)) {
-                    p_OutA_V2 = 0;
-                    p_OutB_H1 = 0;
-                } else if ((56 == count_l)&&(1 == count_h)) {
-                    count_l = 0;
-                    count_h = 0;
                 }
-            } else {// dutyratio = 30%
-                if ((0 == count_l)&&(0 == count_h)) {
-                    if (f_V1_on) {
-                        p_OutB_V1 = 1;
-                    }
-                    if (f_V3_on) {
-                        p_OutA_V3 = 1;
-                    }
-
-                    if (f_V1_onX) {
-                        p_OutB_V1 = 1;
-                    }
-                    if (f_V3_onX) {
-                        p_OutA_V3 = 1;
-                    }
-                } else if ((47 == count_l)&&(0 == count_h)) {
-                    p_OutB_V1 = 0;
-                    p_OutA_V3 = 0;
-                } else if ((78 == count_l)&&(0 == count_h)) {
-                    if (f_V2_on) {
-                        p_OutA_V2 = 1;
-                    }
-                    if (f_H1_on) {
-                        p_OutB_H1 = 1;
-                    }
-
-                    if (f_V2_onX) {
-                        p_OutA_V2 = 1;
-                    }
-                    if (f_H1_onX) {
-                        p_OutB_H1 = 1;
-                    }
-                } else if ((25 == count_l)&&(1 == count_h)) {
-                    p_OutA_V2 = 0;
-                    p_OutB_H1 = 0;
-                } else if ((56 == count_l)&&(1 == count_h)) {
-                    count_l = 0;
-                    count_h = 0;
+            } else {
+                if (f_H1_on) {
+                    p_OutB_H1 = 1;
                 }
+                if (f_V1_on) {
+                    p_OutB_V1 = 1;
+                }
+                if (f_V2_on) {
+                    p_OutA_V2 = 1;
+                }
+                if (f_V3_on) {
+                    p_OutA_V3 = 1;
+                }
+            }
+        } else {
+            if (220 == flash_time_laser) {
+                p_OutB_H1 = 0;
+                p_OutB_V1 = 0;
+                p_OutA_V2 = 0;
+                p_OutA_V3 = 0;
             }
         }
 
@@ -416,41 +416,6 @@ void    FPPA0 (void)
                                 f_vj_on = 1;
                                 f_led_flash = 1;
 
-                                // Disable all 100HZ PWM
-                                p_OutB_V1    =    0;
-                                p_OutA_V2    =    0;
-                                p_OutB_H1    =    0;
-                                p_OutA_V3    =    0;
-
-                                if (f_V1_on) {
-                                    f_last_V1_on = 1;
-                                } else {
-                                    f_last_V1_on = 0;
-                                }
-
-                                if (f_V2_on) {
-                                    f_last_V2_on = 1;
-                                } else {
-                                    f_last_V2_on = 0;
-                                }
-
-                                if (f_H1_on) {
-                                    f_last_H1_on = 1;
-                                } else {
-                                    f_last_H1_on = 0;
-                                }
-
-                                if (f_V3_on) {
-                                    f_last_V3_on = 1;
-                                } else {
-                                    f_last_V3_on = 0;
-                                }
-
-                                f_V1_on = 0;
-                                f_V2_on = 0;
-                                f_H1_on = 0;
-                                f_V3_on = 0;
-
                                 // Enable PWMG0C to 2KHz
                                 pwmgcubl = 0b0000_0000;
                                 pwmgcubh = 0b0001_1111;
@@ -468,55 +433,12 @@ void    FPPA0 (void)
                                 f_vj_on = 0;
                                 f_led_flash = 0;
 
+                                flash_time_laser = 255;
+
                                 // Disable 2KHz
                                 pwmg0c = 0b0000_0000;// do not output PWM
 
                                 p_OutB_LED = 1;
-
-                                f_V1_onX = 0;
-                                f_V2_onX = 0;
-                                f_H1_onX = 0;
-                                f_V3_onX = 0;
-
-                                if (f_last_V1_on) {
-                                    if (!f_mode2) {
-                                        p_OutB_V1    =    1;
-                                    }
-
-                                    f_V1_on = 1;
-                                } else {
-                                    p_OutB_V1    =    0;
-                                }
-
-                                if (f_last_V2_on) {
-                                    if (!f_mode2) {
-                                        p_OutA_V2    =    1;
-                                    }
-
-                                    f_V2_on = 1;
-                                } else {
-                                    p_OutB_V2    =    0;
-                                }
-
-                                if (f_last_H1_on) {
-                                    if (!f_mode2) {
-                                        p_OutB_H1    =    1;
-                                    }
-
-                                    f_H1_on = 1;
-                                } else {
-                                    p_OutB_H1    =    0;
-                                }
-
-                                if (f_last_V3_on) {
-                                    if (!f_mode2) {
-                                        p_OutA_V3    =    1;
-                                    }
-
-                                    f_V3_on = 1;
-                                } else {
-                                    p_OutB_V3    =    0;
-                                }
                             }
                         }
                     }
@@ -528,71 +450,68 @@ void    FPPA0 (void)
                     f_Key_Trig3 = 0;
                     f_2k_on = 1;
 
-                    // L -> H
-                    if (!p_InA_VJ) {
-                        if (1 == stepx) {
+                    if (1 == stepx) {
+                        if (!f_mode2) {
+                            p_OutB_V1 = 1;
+                        }
+
+                        f_V1_on = 1;
+
+                        stepx = 2;
+                    } else if (2 == stepx) {
+                        if (p_InA_QV2) {// HIGH
+                            f_IN_QV2 = 1;
+                        } else {
+                            f_IN_QV2 = 0;
+                        }
+
+                        if (f_IN_QV2) {
                             if (!f_mode2) {
-                                p_OutB_V1 = 1;
+                                p_OutA_V2 = 1;
                             }
 
-                            f_V1_on = 1;
-
-                            stepx = 2;
-                        } else if (2 == stepx) {
-                            if (p_InA_QV2) {// HIGH
-                                f_IN_QV2 = 1;
-                            } else {
-                                f_IN_QV2 = 0;
-                            }
-
-                            if (f_IN_QV2) {
-                                if (!f_mode2) {
-                                    p_OutA_V2 = 1;
-                                }
-
-                                f_V2_on = 1;
-                                stepx = 3;
-                            } else {
-                                f_V1_on = 0;
-                                p_OutB_V1 = 0;
-
-                                stepx = 1;
-                            }
-                        } else if (3 == stepx) {
-                            if (p_InA_QV3) {// HIGH
-                                f_IN_QV3 = 1;
-                            } else {
-                                f_IN_QV3 = 0;
-                            }
-
-                            if (f_IN_QV3) {
-                                if (!f_mode2) {
-                                    p_OutA_V3 = 1;
-                                }
-
-                                f_V3_on = 1;
-
-                                stepx = 4;
-                            } else {
-                                f_V1_on = 0;
-                                f_V2_on = 0;
-
-                                p_OutB_V1 = 0;
-                                p_OutA_V2 = 0;
-
-                                stepx = 1;
-                            }
-                        } else if (4 == stepx) {
+                            f_V2_on = 1;
+                            stepx = 3;
+                        } else {
                             f_V1_on = 0;
-                            f_V2_on = 0;
-                            f_V3_on = 0;
-
                             p_OutB_V1 = 0;
-                            p_OutA_V2 = 0;
-                            p_OutA_V3 = 0;
 
                             stepx = 1;
                         }
+                    } else if (3 == stepx) {
+                        if (p_InA_QV3) {// HIGH
+                            f_IN_QV3 = 1;
+                        } else {
+                            f_IN_QV3 = 0;
+                        }
+
+                        if (f_IN_QV3) {
+                            if (!f_mode2) {
+                                p_OutA_V3 = 1;
+                            }
+
+                            f_V3_on = 1;
+
+                            stepx = 4;
+                        } else {
+                            f_V1_on = 0;
+                            f_V2_on = 0;
+
+                            p_OutB_V1 = 0;
+                            p_OutA_V2 = 0;
+
+                            stepx = 1;
+                        }
+                    } else if (4 == stepx) {
+                        f_V1_on = 0;
+                        f_V2_on = 0;
+                        f_V3_on = 0;
+
+                        p_OutB_V1 = 0;
+                        p_OutA_V2 = 0;
+                        p_OutA_V3 = 0;
+
+                        stepx = 1;
                     }
                 }
 
@@ -602,33 +521,30 @@ void    FPPA0 (void)
                     f_Key_Trig4 = 0;
                     f_2k_on = 1;
 
-                    // L -> H
-                    if (!p_InA_VJ) {
-                        cnt_3s_time_4++;
+                    cnt_3s_time_4++;
 
-                        if (1 == cnt_3s_time_4) {
-                            if (f_H1_on) {// Current is ON
-                                f_H1_on = 0;
-                                p_OutB_H1 = 0;
-                            } else {// Current is OFF
-                                f_H1_on = 1;
+                    if (1 == cnt_3s_time_4) {
+                        if (f_H1_on) {// Current is ON
+                            f_H1_on = 0;
+                            p_OutB_H1 = 0;
+                        } else {// Current is OFF
+                            f_H1_on = 1;
 
-                                if (!f_mode2) {
-                                    p_OutB_H1 = 1;
-                                }
+                            if (!f_mode2) {
+                                p_OutB_H1 = 1;
                             }
-                        } else if (2 == cnt_3s_time_4) {
-                            cnt_3s_time_4 = 0;
+                        }
+                    } else if (2 == cnt_3s_time_4) {
+                        cnt_3s_time_4 = 0;
 
-                            if (f_H1_on) {// Current is ON
-                                f_H1_on = 0;
-                                p_OutB_H1 = 0;
-                            } else {// Current is OFF
-                                f_H1_on = 1;
+                        if (f_H1_on) {// Current is ON
+                            f_H1_on = 0;
+                            p_OutB_H1 = 0;
+                        } else {// Current is OFF
+                            f_H1_on = 1;
 
-                                if (!f_mode2) {
-                                    p_OutB_H1 = 1;
-                                }
+                            if (!f_mode2) {
+                                p_OutB_H1 = 1;
                             }
                         }
                     }
@@ -653,50 +569,6 @@ void    FPPA0 (void)
                                 // 2kHz
                                 f_2k_on = 1;
                             }
-                        }
-
-                        if (f_last_V1_on) {
-                            if (!f_mode2) {
-                                p_OutB_V1    =    1;
-                            }
-
-                            f_V1_onX = 1;
-                        } else {
-                            f_V1_onX = 0;
-                            p_OutB_V1    =    0;
-                        }
-
-                        if (f_last_V2_on) {
-                            if (!f_mode2) {
-                                p_OutA_V2    =    1;
-                            }
-
-                            f_V2_onX = 1;
-                        } else {
-                            f_V2_onX = 0;
-                            p_OutB_V2    =    0;
-                        }
-
-                        if (f_last_H1_on) {
-                            if (!f_mode2) {
-                                p_OutB_H1    =    1;
-                            }
-
-                            f_H1_onX = 1;
-                        } else {
-                            f_H1_onX = 0;
-                            p_OutB_H1    =    0;
-                        }
-
-                        if (f_last_V3_on) {
-                            if (!f_mode2) {
-                                p_OutA_V3    =    1;
-                            }
-
-                            f_V3_onX = 1;
-                        } else {
-                            f_V3_onX = 0;
-                            p_OutB_V3    =    0;
                         }
 
                         cnt_3s_time_led = 0;
