@@ -449,6 +449,7 @@ void    FPPA0 (void)
                     } else {
 						f_vj_on = 0;
                         last_vj_state = 8;
+						flash_time_laser = 20;
 					}
                 }
 
