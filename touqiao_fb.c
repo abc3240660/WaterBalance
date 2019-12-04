@@ -1,5 +1,8 @@
 #include    "extern.h"
 
+//#define USE_20K 1
+#define USE_10K 1
+
 BIT            p_InA_OD    :   PA.4;
 BIT            p_InA_VJ    :   PA.5;
 BIT            p_InA_V     :   PA.7;
@@ -40,9 +43,13 @@ void    FPPA0 (void)
     PAPH        =        _FIELD(p_InA_OD, p_InA_V);
     PBPH        =        _FIELD(p_InB_H);
 
-    // 1/16M * 2^(9+1) = 64us
-    // 1/16M * 2^(10+1) = 128
-    $ T16M        IHRC, /1, BIT10;            //    16MHz / 1 = 16MHz : the time base of T16.
+#ifdef USE_10K
+    $ T16M        IHRC, /4, BIT9;                // 256us
+#endif
+
+#ifdef USE_20K
+    $ T16M        IHRC, /4, BIT8;                // 128us
+#endif
     $ TM2C        IHRC, Disable, Period, Inverse;
 
     BYTE    Key_Flag;
@@ -69,12 +76,6 @@ void    FPPA0 (void)
     BIT        f_H1_on          :    Sys_FlagC.2;
     BIT        f_V3_on          :    Sys_FlagC.3;
 
-    BYTE    Sys_FlagD    =    0;
-    BIT        f_last_V1_on     :    Sys_FlagD.0;
-    BIT        f_last_V2_on     :    Sys_FlagD.1;
-    BIT        f_last_H1_on     :    Sys_FlagD.2;
-    BIT        f_last_V3_on     :    Sys_FlagD.3;
-
 //    pmode    Program_Mode;
 //    fppen    =    0xFF;
 
@@ -89,71 +90,81 @@ void    FPPA0 (void)
     BYTE    cnt_Key_10ms_4    =    250;      //    Key debounce time = 40 mS
 
     BYTE    cnt_3s_time_1     = 0;
-    BYTE    cnt_3s_time_4     = 0;
     BYTE    cnt_3s_time_2k    = 0;// 2KHz
     BYTE    cnt_3s_time_led   = 0;// 1Hz
-    BYTE    flash_time_laser  = 20;
+    BYTE    flash_time_laser  	= 40;
 
     BYTE    cnt_3s_time_startup     = 0;
     BYTE    stepx = 0;
+    BYTE    stepv = 0;
+    BYTE    steph = 0;
     BYTE    start = 0;
 
-    f_mode2 = 0;
+#ifdef USE_10K
+    WORD    count    =    112;
+#endif
+#ifdef USE_20K
+    WORD    count    =    64;
+#endif
+
+    f_mode2 = 0;// default DC
     f_2k_on = 0;
 
-    while (1)
-    {
-        if  (INTRQ.T16)
-        {
+    while (1) {
+        if (INTRQ.T16) {// = 10KHz=100us
             INTRQ.T16        =    0;
-            If (--count1 == 0)                    //    DZSN  count
-            {
-                count1        =    78;                //    128uS * 78 = 10 mS 
-                t16_10ms    =    1;
+            stt16    count;
 
+            if (--count1 == 0) {
+                count1      =    100;                // 100us * 100 = 10 ms
+                t16_10ms    =    1;
+				
                 if (f_vj_on) {
                     flash_time_laser--;
 
                     if (flash_time_laser <= 0) {
-                        flash_time_laser = 20;
+                        flash_time_laser = 40;
                     }
                 }
             }
 
-            if (flash_time_laser >= 10) {
-                count_l++;
+            if (flash_time_laser >= 20) {
+				count_l++;
 
-                if (100 == count_l) {
-                    count_l = 0;
-                    count_h++;
-                    if (100 == count_h)
-                        count_h = 0;
-                }
-            }
+				if (100 == count_l) {
+					count_l = 0;
+					count_h++;
+					if (100 == count_h)
+						count_h = 0;
+				}
+			}
+
         }
 
-        // if vj mode, laser ON 30ms then OFF 220ms
-        if (flash_time_laser >= 10) {
-            if (f_mode2) {
-                if ((1 == count_l)&&(0 == count_h)) {
+		// if vj mode, laser ON 30ms then OFF 220ms
+        if (flash_time_laser >= 20) {
+			if (f_mode2) {// dutyratio = 60% (MCU High)
+                if ((0 == count_l)&&(0 == count_h)) {
                     if (f_V1_on) {
                         p_OutB_V1 = 1;
                     }
                     if (f_V3_on) {
                         p_OutA_V3 = 1;
                     }
-                    p_OutB_H1 = 0;
-                    p_OutB_V2 = 0;
                 } else if ((40 == count_l)&&(0 == count_h)) {
-                    p_OutB_V1 = 0;
-                    p_OutA_V3 = 0;
                     if (f_V2_on) {
                         p_OutB_V2 = 1;
                     }
                     if (f_H1_on) {
                         p_OutB_H1 = 1;
                     }            
-                } else if ((78 == count_l)&&(0 == count_h)) {
+                } else if ((60 == count_l)&&(0 == count_h)) {
+                    p_OutB_V1 = 0;
+                    p_OutA_V3 = 0;
+                } else if ((0 == count_l)&&(1 == count_h)) {
+                    p_OutB_H1 = 0;
+                    p_OutB_V2 = 0;
+
                     count_l = 0;
                     count_h = 0;
                 }
@@ -172,7 +183,7 @@ void    FPPA0 (void)
                 }
             }
         } else {
-            if (9 == flash_time_laser) {
+            if (19 == flash_time_laser) {
                 p_OutB_H1 = 0;
                 p_OutB_V1 = 0;
                 p_OutB_V2 = 0;
@@ -188,8 +199,6 @@ void    FPPA0 (void)
                 cnt_3s_time_startup++;
             }
 
-//            if (50 == cnt_3s_time_startup) {
-//                f_2k_on = 1;
             if (65 == cnt_3s_time_startup) {
                 if (!f_mode2) {
                     p_OutB_H1    =    1;
@@ -273,6 +282,7 @@ void    FPPA0 (void)
                     p_OutA_V3 = 0;
 
                     stepx = 1;
+                    stepv = 1;
                     start = 1;
                 }
             }
@@ -299,6 +309,15 @@ void    FPPA0 (void)
                         Key_flag    ^=    _FIELD(p_InA_OD);
                     }
                 } else {
+                    if (cnt_Key_10ms_1 < 245) {
+						if (!f_vj_on) {
+							if (f_mode2) {
+								f_mode2 = 0;
+							} else {
+								f_mode2 = 1;
+							}
+						}
+                    }
                     cnt_Key_10ms_1    =    250;
                 }
 
@@ -318,7 +337,9 @@ void    FPPA0 (void)
                 } else {
                     if (cnt_Key_10ms_3 < 245) {
                         Key_flag    ^=    _FIELD(p_InA_V);
-                        f_Key_Trig3 = 1;
+						if (!f_vj_on) {
+							f_Key_Trig3 = 1;
+						}
                     }
                     cnt_Key_10ms_3 = 250;
                 }
@@ -339,7 +360,9 @@ void    FPPA0 (void)
                 } else {
                     if (cnt_Key_10ms_4 < 245) {
                         Key_flag    ^=    _FIELD(p_InB_H);
-                        f_Key_Trig4 = 1;
+                        if (!f_vj_on) {
+							f_Key_Trig4 = 1;
+						}
                     }
                     cnt_Key_10ms_4 = 250;
                 }
@@ -373,8 +396,6 @@ void    FPPA0 (void)
 
                 if (1)
                 {
-                    //p_OutB_LED = 1;
-
                     // Normal Mode
                     if (0 == cnt_3s_time_1) {
                         // Down: L->H
@@ -401,7 +422,7 @@ void    FPPA0 (void)
                                 f_vj_on = 0;
                                 f_led_flash = 0;
 
-                                flash_time_laser = 20;
+                                flash_time_laser = 40;
 
                                 // Disable Timer2 PWM
                                 tm2c = 0b0000_0000;// IHRC | PA3 | Period | Disable Inverse
@@ -412,7 +433,7 @@ void    FPPA0 (void)
                     } else {
                         f_vj_on = 0;
                         last_vj_state = 8;
-                        flash_time_laser = 20;
+                        flash_time_laser = 40;
                     }
                 }
 
@@ -422,15 +443,15 @@ void    FPPA0 (void)
                     f_Key_Trig3 = 0;
                     f_2k_on = 1;
 
-                    if (1 == stepx) {
+                    if (1 == stepv) {
                         if (!f_mode2) {
                             p_OutB_V1 = 1;
                         }
 
                         f_V1_on = 1;
 
-                        stepx = 2;
-                    } else if (2 == stepx) {
+                        stepv = 2;
+                    } else if (2 == stepv) {
                         if (p_InA_QV2) {// HIGH
                             f_IN_QV2 = 1;
                         } else {
@@ -443,14 +464,14 @@ void    FPPA0 (void)
                             }
 
                             f_V2_on = 1;
-                            stepx = 3;
+                            stepv = 3;
                         } else {
                             f_V1_on = 0;
                             p_OutB_V1 = 0;
 
-                            stepx = 1;
+                            stepv = 1;
                         }
-                    } else if (3 == stepx) {
+                    } else if (3 == stepv) {
                         if (p_InB_QV3) {// HIGH
                             f_IN_QV3 = 1;
                         } else {
@@ -464,7 +485,7 @@ void    FPPA0 (void)
 
                             f_V3_on = 1;
 
-                            stepx = 4;
+                            stepv = 4;
                         } else {
                             f_V1_on = 0;
                             f_V2_on = 0;
@@ -472,9 +493,9 @@ void    FPPA0 (void)
                             p_OutB_V1 = 0;
                                 p_OutB_V2 = 0;
 
-                            stepx = 1;
+                            stepv = 1;
                         }
-                    } else if (4 == stepx) {
+                    } else if (4 == stepv) {
                         f_V1_on = 0;
                         f_V2_on = 0;
                         f_V3_on = 0;
@@ -483,7 +504,7 @@ void    FPPA0 (void)
                         p_OutB_V2 = 0;
                         p_OutA_V3 = 0;
 
-                        stepx = 1;
+                        stepv = 1;
                     }
                 }
 
@@ -493,9 +514,9 @@ void    FPPA0 (void)
                     f_Key_Trig4 = 0;
                     f_2k_on = 1;
 
-                    cnt_3s_time_4++;
+                    steph++;
 
-                    if (1 == cnt_3s_time_4) {
+                    if (1 == steph) {
                         if (f_H1_on) {// Current is ON
                             f_H1_on = 0;
                             p_OutB_H1 = 0;
@@ -506,8 +527,8 @@ void    FPPA0 (void)
                                 p_OutB_H1 = 1;
                             }
                         }
-                    } else if (2 == cnt_3s_time_4) {
-                        cnt_3s_time_4 = 0;
+                    } else if (2 == steph) {
+                        steph = 0;
 
                         if (f_H1_on) {// Current is ON
                             f_H1_on = 0;
