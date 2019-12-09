@@ -3,10 +3,10 @@
 //#define USE_20K 1
 #define USE_10K 1
 
-BIT     p_InB_H    :   PB.2;
+BIT     p_InB_H     :   PB.2;
 BIT     p_InB_VJ    :   PB.5;
-BIT     p_InB_V     :   PB.1;
-BIT     p_InA_OD     :   PA.7;
+BIT     p_InB_OD    :   PB.1;
+BIT     p_InA_V     :   PA.7;
 BIT     p_InA_RF    :   PA.6;
 
 BIT     p_OutB_2K   :   PB.6;
@@ -27,14 +27,14 @@ void FPPA0 (void)
     $    p_OutB_H1            Out, Low;
     $    p_OutA_H2            Out, Low;
 
-    $    p_InB_H             In;
+    $    p_InB_H              In;
     $    p_InB_VJ             In;
-    $    p_InB_V              In;
-    $    p_InA_OD              In;
+    $    p_InB_OD             In;
+    $    p_InA_V              In;
 
     // IN Pull-UP
-    PAPH        =        _FIELD(p_InA_OD, p_InA_RF);
-    PBPH        =        _FIELD(p_InB_H, p_InB_V);
+    PAPH        =        _FIELD(p_InA_V, p_InA_RF);
+    PBPH        =        _FIELD(p_InB_H, p_InB_OD);
 
 #ifdef USE_10K
     $ T16M        IHRC, /4, BIT9;                // 256us
@@ -47,7 +47,7 @@ void FPPA0 (void)
     $ TM2C        IHRC, Disable, Period, Inverse;
 
     BYTE    Key_Flag;
-    Key_Flag            =    _FIELD(p_InB_H, p_InB_VJ, p_InB_V, p_InA_OD);
+    Key_Flag            =    _FIELD(p_InB_H, p_InB_VJ, p_InB_OD, p_InA_V);
 
     BYTE    Sys_Flag    =    0;
     BIT        f_Key_Trig1      :    Sys_Flag.0;
@@ -164,7 +164,6 @@ void FPPA0 (void)
             if (1 == start) {
                 if (!f_ev1527_ok) {
                     if (!p_InA_RF) {// LOW
-//                        p_InB_V = 0;
                         always_low_cnt++;
 
                         if (always_low_cnt >= 141) {
@@ -180,8 +179,6 @@ void FPPA0 (void)
 
                         f_last_level = 0;
                     } else {
-//                        p_InB_V = 1;
-
                         if (!f_last_level) {
 #if 0
                             if (0 == count_x) {
@@ -203,23 +200,6 @@ void FPPA0 (void)
                                     always_high_cnt = 0;
                                     dat_bit_cnt = 0; f_sync_ok = 0; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
                                 } else {
-#if 1
-                                    if (0 == dat_bit_cnt) {
-                                        p_InB_V = 1;
-                                    }
-
-                                    if (10 == dat_bit_cnt) {
-                                        p_InB_V = 0;
-                                    }
-
-                                    if (15 == dat_bit_cnt) {
-                                        p_InB_V = 1;
-                                    }
-
-                                    if (dat_bit_cnt >= 20) {
-                                        p_InB_V = 0;
-                                    }
-#endif
                                     if (23 == dat_bit_cnt) {
                                         ev1527_byte1 = tmp_byte1; ev1527_byte2 = tmp_byte2;
                                         ev1527_byte3 = tmp_byte3; ev1527_byte4 = tmp_byte4;
@@ -239,22 +219,6 @@ void FPPA0 (void)
                                     always_high_cnt = 0;
                                     dat_bit_cnt = 0; f_sync_ok = 0; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
                                 } else {
-#if 1
-                                    if (0 == dat_bit_cnt) {
-                                        p_InB_V = 1;
-                                    }
-
-                                    if (10 == dat_bit_cnt) {
-                                        p_InB_V = 0;
-                                    }
-
-                                    if (15 == dat_bit_cnt) {
-                                        p_InB_V = 1;
-                                    }
-                                    if (dat_bit_cnt >= 20) {
-                                        p_InB_V = 1;
-                                    }
-#endif
                                     switch (dat_bit_cnt) {
                                         case 0 : { tmp_byte1=tmp_byte1 | 0B10000000; break; }
                                         case 1 : { tmp_byte1=tmp_byte1 | 0B01000000; break; }
@@ -314,8 +278,6 @@ void FPPA0 (void)
 
                         f_last_level = 1;
                     }
-                } else {
-                    p_InB_V = 0;
                 }
 
                 if (f_ev1527_ok) {
@@ -510,58 +472,62 @@ void FPPA0 (void)
 //            else if (250 == cnt_3s_time_startup) {
             if (1 == start) {
                 // port change detect(both H->L and L->H)
-                A    =    (PA ^ Key_Flag) & _FIELD(p_InA_OD);    //    only check the bit of p_Key_In.
+				A    =    (PB ^ Key_flag) & _FIELD(p_InB_OD);    //    only check the bit of p_Key_In.
                 if (! ZF)
                 {                                        //    if is not same,
                     // Active: H->L
-                    if (!p_InA_OD) {
+                    if (!p_InB_OD) {
                         if (cnt_Key_10ms_1 > 0) {
                             if (--cnt_Key_10ms_1 == 0)
                             {                                    //    and over debounce time.
                                 f_Key_Trig1    =    1;                //    so Trigger, when stable at 3000 mS.
-                                cnt_Key_10ms_1    =    250;
                             }
 
                             if (cnt_Key_10ms_1 == 245) {
-                                f_2k_on = 1;
+								if (!f_vj_on) {
+									f_2k_on = 1;
+								}
                             }
                         }
                     } else {// Up: H->L
-                        Key_flag    ^=    _FIELD(p_InA_OD);
+                        Key_flag    ^=    _FIELD(p_InB_OD);
                     }
                 } else {
                     if (cnt_Key_10ms_1 < 245) {
-						if (!f_vj_on) {
-							if (f_mode2) {
-								f_mode2 = 0;
-							} else {
-								f_mode2 = 1;
+						if (cnt_Key_10ms_1 != 0) {// Only ShortPress
+							if (!f_vj_on) {
+								if (f_mode2) {
+									f_mode2 = 0;
+								} else {
+									f_mode2 = 1;
+								}
 							}
 						}
                     }
+
                     cnt_Key_10ms_1    =    250;
                 }
 
-                A    =    (PB ^ Key_flag) & _FIELD(p_InB_V);    //    only check the bit of p_Key_In.
+				A    =    (PA ^ Key_Flag) & _FIELD(p_InA_V);    //    only check the bit of p_Key_In.
                 if (! ZF)
                 {                                        //    if is not same,
                     // Active: H->L
-                    if (!p_InB_V) {
-                        if (--cnt_Key_10ms_3 == 0)
-                        {                                    //    and over debounce time.
-                            Key_flag    ^=    _FIELD(p_InB_V);
-                            cnt_Key_10ms_3 = 250;
-                        }
+                    if (!p_InA_V) {
+						if (cnt_Key_10ms_3 > 0) {
+							if (--cnt_Key_10ms_3 == 0) {
+								// do not support long press
+							}
+							
+							if (cnt_Key_10ms_3 == 245) {
+								if (!f_vj_on) {
+									f_Key_Trig3 = 1;
+								}
+							}
+						}
                     } else {// Up: H->L
-                        Key_flag    ^=    _FIELD(p_InB_V);
+                        Key_flag    ^=    _FIELD(p_InA_V);
                     }
                 } else {
-                    if (cnt_Key_10ms_3 < 245) {
-                        Key_flag    ^=    _FIELD(p_InB_V);
-						if (!f_vj_on) {
-							f_Key_Trig3 = 1;
-						}
-                    }
                     cnt_Key_10ms_3 = 250;
                 }
 
@@ -570,21 +536,21 @@ void FPPA0 (void)
                 {                                        //    if is not same,
                     // Active: H->L
                     if (!p_InB_H) {
-                        if (--cnt_Key_10ms_4 == 0)
-                        {                                    //    and over debounce time.
-                            Key_flag    ^=    _FIELD(p_InB_H);
-                            cnt_Key_10ms_4 = 250;
-                        }
+						if (cnt_Key_10ms_4 > 0) {
+							if (--cnt_Key_10ms_4 == 0) {
+								// do not support long press
+							}
+							
+							if (cnt_Key_10ms_4 == 245) {
+								if (!f_vj_on) {
+									f_Key_Trig4 = 1;
+								}
+							}
+						}
                     } else {// Up: H->L
                         Key_flag    ^=    _FIELD(p_InB_H);
                     }
                 } else {
-                    if (cnt_Key_10ms_4 < 245) {
-                        Key_flag    ^=    _FIELD(p_InB_H);
-                        if (!f_vj_on) {
-							f_Key_Trig4 = 1;
-						}
-                    }
                     cnt_Key_10ms_4 = 250;
                 }
 
@@ -644,7 +610,7 @@ void FPPA0 (void)
                                 f_vj_on = 0;
                                 f_led_flash = 0;
 
-                                flash_time_laser = 20;
+                                flash_time_laser = 40;
 
                                 // Disable 2KHz
                                 pwmg1c = 0b0000_0000;// do not output PWM
@@ -655,7 +621,7 @@ void FPPA0 (void)
                     } else {
 						f_vj_on = 0;
                         last_vj_state = 8;
-						flash_time_laser = 20;
+						flash_time_laser = 40;
 					}
                 }
 
