@@ -295,6 +295,8 @@ void FPPA0 (void)
 								} else {
 									f_mode2 = 1;
 								}
+								
+								flash_time_laser = 40;
 							}
 						}
                     } else if (8 == ev1527_byte4) {// B -> V
@@ -501,6 +503,8 @@ void FPPA0 (void)
 								} else {
 									f_mode2 = 1;
 								}
+								
+								flash_time_laser = 40;
 							}
 						}
                     }
