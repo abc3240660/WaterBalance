@@ -334,6 +334,8 @@ void    FPPA0 (void)
                         } else {
                             f_pwm_mode = 1;
                         }
+
+						flash_time_laser = 20;
                     }
                     cnt_Key_10ms_1    =    250;
                 }

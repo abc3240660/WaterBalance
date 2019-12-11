@@ -503,7 +503,7 @@ void FPPA0 (void)
 								} else {
 									f_mode2 = 1;
 								}
-								
+
 								flash_time_laser = 40;
 							}
 						}
