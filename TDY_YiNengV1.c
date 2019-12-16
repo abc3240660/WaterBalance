@@ -74,12 +74,6 @@ void FPPA0 (void)
 	BIT		   f_H_disable		:	 Sys_FlagC.5;
 	BIT		   f_V_disable		:	 Sys_FlagC.6;
 
-    BYTE    Sys_FlagD    =    0;
-    BIT        f_last_V1_on     :    Sys_FlagD.0;
-    BIT        f_last_V2_on     :    Sys_FlagD.1;
-    BIT        f_last_H1_on     :    Sys_FlagD.2;
-    BIT        f_last_H2_on     :    Sys_FlagD.3;
-
 //    pmode    Program_Mode;
 //    fppen    =    0xFF;
 
@@ -327,7 +321,7 @@ void FPPA0 (void)
 
 		// if vj mode, laser ON 30ms then OFF 220ms
         if (flash_time_laser >= 20) {
-			if (f_mode2) {// dutyratio = 60%
+			if (f_mode2) {// dutyratio = 60% (MCU High)
                 if ((0 == count_l)&&(0 == count_h)) {
                     if (f_V1_on) {
                         p_OutA_V1 = 1;
@@ -478,7 +472,6 @@ void FPPA0 (void)
                 }
             }
 
-//            else if (250 == cnt_3s_time_startup) {
             if (1 == start) {
                 // port change detect(both H->L and L->H)
 				A    =    (PB ^ Key_flag) & _FIELD(p_InB_OD);    //    only check the bit of p_Key_In.
@@ -604,53 +597,50 @@ void FPPA0 (void)
 #endif
                 }
 
-                if (1)
-                {
-                    // Normal Mode
-                    if (0 == cnt_3s_time_1) {
-                        // Down: L->H
-                        if (p_InB_VJ) {// special mode
-                            if (last_vj_state != 1) {
-                                last_vj_state = 1;
+                // Normal Mode
+                if (0 == cnt_3s_time_1) {
+                    // Down: L->H
+                    if (p_InB_VJ) {// special mode
+                        if (last_vj_state != 1) {
+                            last_vj_state = 1;
 
-                                f_vj_on = 1;
-                                f_led_flash = 1;
+                            f_vj_on = 1;
+                            f_led_flash = 1;
 
-                                // Enable PWMG1C to 2KHz
-                                pwmgcubl = 0b0000_0000;
-                                pwmgcubh = 0b0001_1111;
+                            // Enable PWMG1C to 2KHz
+                            pwmgcubl = 0b0000_0000;
+                            pwmgcubh = 0b0001_1111;
 
-                                pwmg1dtl = 0b1000_0000;
-                                pwmg1dth = 0b0000_1111;
+                            pwmg1dtl = 0b1000_0000;
+                            pwmg1dth = 0b0000_1111;
 
-                                pwmg1c = 0b0000_0010;// PB6 PWM
-                                pwmgclk = 0b1100_0000;// enable PWMG CLK(=SYSCLK/16)
-                            }
-                        } else {
-                            if (last_vj_state != 0) {
-                                last_vj_state = 0;
-
-                                f_vj_on = 0;
-                                f_led_flash = 0;
-
-								count_l = 0;
-								count_h = 0;
-                                flash_time_laser = 40;
-
-                                // Disable 2KHz
-                                pwmg1c = 0b0000_0000;// do not output PWM
-
-
-                            }
+                            pwmg1c = 0b0000_0010;// PB6 PWM
+                            pwmgclk = 0b1100_0000;// enable PWMG CLK(=SYSCLK/16)
                         }
                     } else {
-						count_l = 0;
-						count_h = 0;
-						f_vj_on = 0;
-                        last_vj_state = 8;
-						flash_time_laser = 40;
-					}
-                }
+                        if (last_vj_state != 0) {
+                            last_vj_state = 0;
+
+                            f_vj_on = 0;
+                            f_led_flash = 0;
+
+							count_l = 0;
+							count_h = 0;
+                            flash_time_laser = 40;
+
+                            // Disable 2KHz
+                            pwmg1c = 0b0000_0000;// do not output PWM
+
+
+                        }
+                    }
+                } else {
+					count_l = 0;
+					count_h = 0;
+					f_vj_on = 0;
+                    last_vj_state = 8;
+					flash_time_laser = 40;
+				}
 
                 if (f_Key_Trig3)// CN1/V
                 {
@@ -678,7 +668,7 @@ void FPPA0 (void)
 
 						f_V1_on = 0;
                     	f_V2_on = 1;
-                            stepv = 3;
+                        stepv = 3;
 					} else if (3 == stepv) {
 						if (!f_mode2) {
 							p_OutA_V1 = 1;
