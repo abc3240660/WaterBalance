@@ -286,11 +286,9 @@ void FPPA0 (void)
                                     f_mode2 = 1;
                                 }
 
-                                if (!f_vj_on) {
-                                    count_l = 0;
-                                    count_h = 0;
-                                    flash_time_laser = 40;
-                                }
+                                count_l = 0;
+                                count_h = 0;
+                                flash_time_laser = 40;
 
                                 if (!f_vj_on) {
                                     f_2k_on = 1;
@@ -308,11 +306,9 @@ void FPPA0 (void)
                                         f_mode2 = 0;// DC
                                     }
 
-                                    if (!f_vj_on) {
-                                        count_l = 0;
-                                        count_h = 0;
-                                        flash_time_laser = 40;
-                                    }
+                                    count_l = 0;
+                                    count_h = 0;
+                                    flash_time_laser = 40;
 
                                     f_Key_Trig1    =    1;                //    so Trigger, when stable at 3000 mS.
                                 }
@@ -362,17 +358,17 @@ void FPPA0 (void)
                     if (f_H2_on) {
                         p_OutA_H2 = 1;
                     }
-                } else if ((40 == count_l)&&(0 == count_h)) {
+                } else if ((38 == count_l)&&(0 == count_h)) {
                     if (f_V2_on) {
                         p_OutA_V2 = 1;
                     }
                     if (f_H1_on) {
                         p_OutB_H1 = 1;
                     }
-                } else if ((60 == count_l)&&(0 == count_h)) {
+                } else if ((57 == count_l)&&(0 == count_h)) {
                     p_OutA_V1 = 0;
                     p_OutA_H2 = 0;
-                } else if ((0 == count_l)&&(1 == count_h)) {
+                } else if ((95 == count_l)&&(0 == count_h)) {
                     p_OutA_V2 = 0;
                     p_OutB_H1 = 0;
                     
@@ -519,11 +515,9 @@ void FPPA0 (void)
                                     f_mode2 = 0;// DC
                                 }
 
-                                if (!f_vj_on) {
-                                    count_l = 0;
-                                    count_h = 0;
-                                    flash_time_laser = 40;
-                                }
+                                count_l = 0;
+                                count_h = 0;
+                                flash_time_laser = 40;
 
                                 f_Key_Trig1    =    1;                //    so Trigger, when stable at 3000 mS.
                             }
@@ -535,11 +529,9 @@ void FPPA0 (void)
                                     f_mode2 = 1;
                                 }
 
-                                if (!f_vj_on) {
-                                    count_l = 0;
-                                    count_h = 0;
-                                    flash_time_laser = 40;
-                                }
+                                count_l = 0;
+                                count_h = 0;
+                                flash_time_laser = 40;
 
                                 if (!f_vj_on) {
                                     f_2k_on = 1;
