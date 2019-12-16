@@ -181,7 +181,7 @@ void    FPPA0 (void)
                         if (f_V3_on) {
                             p_OutA_V3 = 1;
                         }
-                    } else if ((30 == count_l)&&(0 == count_h)) {
+                    } else if ((35 == count_l)&&(0 == count_h)) {
                         p_OutB_V1 = 0;
                         p_OutA_V3 = 0;
                     } else if ((50 == count_l)&&(0 == count_h)) {
@@ -191,7 +191,7 @@ void    FPPA0 (void)
                         if (f_H1_on) {
                             p_OutB_H1 = 1;
                         }
-                    } else if ((80 == count_l)&&(0 == count_h)) {
+                    } else if ((85 == count_l)&&(0 == count_h)) {
                         p_OutA_V2 = 0;
                         p_OutB_H1 = 0;
                     } else if ((0 == count_l)&&(1 == count_h)) {
@@ -202,8 +202,8 @@ void    FPPA0 (void)
 #else
 #if 0
 				if (f_pwm_mode) {
-					val1 = 30;
-					val2 = 80;
+					val1 = 35;
+					val2 = 85;
 				} else {
 					val1 = 42;
 					val2 = 92;
@@ -384,8 +384,8 @@ void    FPPA0 (void)
 									val2 = 92;
 									f_pwm_mode = 0;
 								} else {
-									val1 = 30;
-									val2 = 80;
+									val1 = 35;
+									val2 = 85;
 									f_pwm_mode = 1;
 								}
 
