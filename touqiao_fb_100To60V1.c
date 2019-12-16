@@ -25,16 +25,16 @@ void    FPPA0 (void)
 
     $ EOSCR        DIS_LVD_BANDGAP;
 
-    $    p_OutA_2K              Out, Low;
+    $    p_OutA_2K            Out, Low;
     $    p_OutB_V1            Out, Low;
-    $    p_OutB_V2              Out, Low;
+    $    p_OutB_V2            Out, Low;
     $    p_OutA_V3            Out, Low;
     $    p_OutB_H1            Out, Low;
     $    p_OutB_LED           Out, Low;// off
 
-    $    p_InA_OD            In;
+    $    p_InA_OD             In;
     $    p_InA_VJ             In;
-    $    p_InA_V                In;
+    $    p_InA_V              In;
     $    p_InB_H              In;
     $    p_InA_QV2            In;
     $    p_InB_QV3            In;
@@ -164,13 +164,13 @@ void    FPPA0 (void)
                 } else if ((0 == count_l)&&(1 == count_h)) {
                     p_OutB_H1 = 0;
                     p_OutB_V2 = 0;
-					
+
                     count_l = 0;
                     count_h = 0;
                 } else if ((count_l != 0)&&(1 == count_h)) {
                     count_l = 0;
                     count_h = 0;
-				}
+                }
             } else {
                 if (f_H1_on) {
                     p_OutB_H1 = 1;
