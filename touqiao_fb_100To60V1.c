@@ -304,11 +304,9 @@ void    FPPA0 (void)
 									f_mode2 = 0;// DC
 								}
 
-								if (!f_vj_on) {
-									count_l = 0;
-									count_h = 0;
-									flash_time_laser = 40;
-								}
+								count_l = 0;
+								count_h = 0;
+								flash_time_laser = 40;
 
                                 f_Key_Trig1    =    1;                //    so Trigger, when stable at 3000 mS.
                             }
@@ -320,11 +318,9 @@ void    FPPA0 (void)
 									f_mode2 = 1;
 								}
 
-								if (!f_vj_on) {
-									count_l = 0;
-									count_h = 0;
-									flash_time_laser = 40;
-								}
+								count_l = 0;
+								count_h = 0;
+								flash_time_laser = 40;
 
 								if (!f_vj_on) {
 									f_2k_on = 1;
