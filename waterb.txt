@@ -435,91 +435,217 @@ Touch				*1	1.00										************
 
 
 
-// -------------------------------
+// -------------------------------TDY
 // --- Part1
-1K 		5% 	0603 	2		R9/10		***
-12.7K	1%	0603	1		R6			+++
-150K	5%	0603	3		R2/11 F2	*** 1%
-10K		5%	0603	4		R1/3/4/5	*** 1%
-												0.03
-100NF	10%	0603	2	50V	C2/C9		***
-												0.012*2
-1UF		20%	0603	1	16V	C3			+++
-												0.02*1
-10UF	20%	0603	2	16V	C7/C8		+++
-												0.065*2
+1K 		5% 	0603 	2		R9/10		***					0.00231
+12.7K	1%	0603	1		R6			+++					0.00284
+150K	5%	0603	3		R2/11 F2	*** 1%				0.00284
+10K		5%	0603	4		R1/3/4/5	*** 1%				0.00284	
+												0.02503
+100NF	10%	0603	2	50V	C2/C9		***					0.012
+												0.024
+1UF		20%	0603	1	16V	C3			+++					0.0192
+												0.02
+10UF	20%	0603	2	16V	C7/C8		+++					0.0828
+												0.1656
 												
-22UF	20%	0805	3	25V	C1/C4/C5	***
-												0.15*2
-															0.504
+22UF	20%	0805	3	25V	C1/C4/C5	***					0.12
+												0.36
+															0.59463
 SS34				1		D2			***		0.072
-SI2302				4		QH1/2 QV1/2	***		0.06
+SI2302				4		QH1/2 QV1/2	***		0.065
 1HC					1		Q5			***		0.03
 4R7					1		L1			***		0.138
 LN1132P302MR		1		U1			+++		0.08
-FP6298				1		IC2			***		0.91
-MCU					1							0.21
-BS83*+100NF			1							1.2
-															2.88
-																	3.384
+FP6298				1		IC2			***		0.90
+MCU					1							0.22
+
+Touch				1							1.05
+100NF				1							0.012
+															2.762
+																	3.35663
 				sumpointA_MAIN	80	sumpointA_KEY	10
 				sumpointB_MAIN	11	sumpointB_KEY	7/8
-SMT+DIP+KEY			*1	0.9		###
-PCB-MAIN			*1	0.27	###
-PCB-KEY				*1	0.32	###
-															1.49
-LS1-BEEP			*1	0.16
-KEYs				*1	0.13	###
-J1/2/3+LINE			*1	0.27
-PWR LINE			*1	0.09
-PWR KEY				*1	0.09
+SMT+DIP+KEY			*1	1.0		###
+PCB-MAIN			*1	0.45	###
+PCB-KEY				*1	0.23	###
+															1.68
+LS1-BEEP			*1	0.18
+J1/2/3+LINE			*1	0.20
+PWR LINE			*1	0.14
+PWR KEY				*1	0.11
 LED					*1	0.03	###
-															0.77
-																	5.644
-433M														1.2+4.4
-																	11.244
+2/2/5 PH2.0 DIP		*1	0.0345
+															0.6945
+																	5.73113
+433M														1.0+0.11+0.18+4.4
+	sumpointB	9
+																	11.44
 																	
-																	
+// --------------------------------------------------XuanChen
 // -------------------------------
-// --- Part1 YiLong
-100		5%	0603	1		RX
-1K 		5% 	0603 	4		R9/10		***
-14K		1%	0603	1		R6			+++
-62K		5%	0603	1		R2/11 F2	*** 1%
-47K		5%	0603	1		R1/3/4/5	*** 1%
-												0.023
+// --- Part1
+R2 					*1	0.00332
+R3/5/7/8/9/10 		*6	0.00332
+R1/4				*2	0.005
+R11/12				*2	0.00332
+R6					*1	0.00246
+C1					*2	0.028
+C2/C3				*2	0.06
+									pointA	32
+C4-DIP				*1	0.021
+									pointB	2
+									sum	0.21334	subsum	0.21334	###
+L1-4R7				*1	0.138
+QBZ1				*1	0.033	###
+QH1/V1/V2/V3		*4	0.041	###
+HRZP				*1	0.080
+									pointA	20
+									sum	0.415	subsum	0.62834
 
-1.5PF	20%	0603	1	16V	C7/C8		0.0223		
-20PF	10%	0603	2					0.0020
-100NF	10%	0603	3	50V	C2/C9		0.0160
-470nF	20%	0603	1					0.0320
-2.2UF	20%	0603	1	16V	C3			0.0260
-22UF	20%	0805	3	25V	C1/C4/C5	0.0900
-												0.3703
-56nH		0603	2
-															0.6
-SI2300				3		QH1/2 QV1/2	***		0.06
-3R3					1		L1			***		0.138
-6.7458MHz			1							0.15
-SYN480R				1							0.45
-TD6817				1		IC2			***		0.34
-1HC				    1							0.03
-MCU					1							0.20
-BS84A04A-4			1							1.05
-															2.538
-																	3.138
-				sumpointA_MAIN	100	sumpointA_KEY	0
-				sumpointB_MAIN	6	sumpointB_KEY	0
-SMT+DIP 			*1	0.8		###
-PCB-MAIN			*1	0.40	###
-SpringKeys			*2	0.1
-															1.40
-LS1-BEEP			*1	0.16
-KEYs				*1	0.13	###
-J1/2/3+LINE			*1	0.17
-PWR LINE			*1	0.09
-PWR KEY				*1	0.09
-															0.64
-																	5.178
-433M														4.4
-																	8.9246
+// --- Part2
+U1					*1	0.22	###
+U2					*1	0.37	###
+									sum	1.21834	subsum	0.59
+									pointA 19	sumpointA	71
+
+LS1-BEEP			*1	0.20										************
+DIP 2P/6P			*1	0.038
+									pointB	12	sumpointB	14
+KEY LINE			*1	0.31										************
+SW  LINE			*1	0.10										************
+SW  				*1	0.09										************
+LED					*1	0.04	###
+									sum	1.99634	subsum	0.778
+									pointC	8	sumpointC	8
+
+// --- Part3 Touch
+C1					*1	0.028	###
+Touch				*1	1.05	###
+									sum	1.078	subsum 	3.07434
+									pointA 10	sumpointA	81
+
+
+SMT-81				*1	0.405	###
+DIP pointB-14		*1	0.31	###
+DIP pointC-8		*1	0.32	###
+PCB-MAIN-1W8		*1	0.3067	###
+PCB-KEY-2W			*1	0.4255	###
+
+									sum	1.7672	subsum	4.84154
+									sumpointA_MAIN	66	sumpointA_KEY	10
+									sumpointB_MAIN	14	sumpointB_KEY	7/8
+									
+									
+// --------------------------------------------------FST G
+// -------------------------------
+// --- Part1
+R2 					*1	0.00332
+R3/5/7/8/9/10 		*6	0.00332
+R1/4				*2	0.005
+R11/12				*2	0.00332
+R6					*1	0.00246
+C1					*2	0.028
+C2/C3				*2	0.06
+									pointA	32
+C4-DIP				*1	0.021
+									pointB	2
+									sum	0.21334	subsum	0.21334	###
+L1-4R7				*1	0.138
+QBZ1				*1	0.033	###
+QH1/V1/V2/V3		*4	0.041	###
+HRZP				*1	0.080
+									pointA	20
+									sum	0.415	subsum	0.62834
+
+// --- Part2
+U1					*1	0.22	###
+U2					*1	0.37	###
+									sum	1.21834	subsum	0.59
+									pointA 19	sumpointA	71
+
+LS1-BEEP			*1	0.20										************
+DIP 2P/6P			*1	0.038
+									pointB	12	sumpointB	14
+KEY LINE			*1	0.31										************
+SW  LINE			*1	0.10										************
+SW  				*1	0.09										************
+LED					*1	0.04	###
+									sum	1.99634	subsum	0.778
+									pointC	8	sumpointC	8
+
+// --- Part3 Touch
+C1					*1	0.028	###
+Touch				*1	1.05	###
+									sum	1.078	subsum 	3.07434
+									pointA 10	sumpointA	81
+
+
+SMT-81				*1	0.405	###
+DIP pointB-14		*1	0.28	###
+DIP pointC-8		*1	0.24	###
+PCB-MAIN-3K			*1	0.36	###
+PCB-KEY-3K			*1	0.37	###
+PCB-SAMLL			*1	0.05
+
+									sum	1.705	subsum	4.77934
+									sumpointA_MAIN	71	sumpointA_KEY	10
+									sumpointB_MAIN	14	sumpointB_KEY	7/8
+									
+									
+// -------------------------------FST B
+// --- Part1
+R2 					*1	0.003
+R4/11		 		*2	0.003
+R5					*1	0.003
+R3/6/7/8/9			*5	0.0045
+R10					*1	0.0045
+R1					*1	0.0045
+R15/16/17/18		*4	0.003
+C2/4/6				*3	0.015
+C3/C5				*2	0.11
+									pointA	40
+C7-DIP				*1	0.021
+									pointB	2
+									sum	0.4495	subsum	0.4495	###
+D1-SS34				*1	0.062										************
+									pointA	2
+L1-4R7				*1	0.138
+QBZ1				*1	0.03	###
+QH1/V1/V2/V3		*4	0.04	###
+									pointA	17
+									sum	0.8395	subsum	0.39
+
+// --- Part2
+IC1					*1	0.20	###
+IC2					*1	0.85	###
+									sum	1.8895	subsum	1.05
+									pointA	22	sumpointA	81
+
+LS1-BEEP			*1	0.20										************
+DIP 2P/6P			*1	0.038
+									pointB	12	sumpointB	14
+KEY LINE			*1	0.31										************
+SW  LINE			*1	0.10										************
+SW  				*1	0.09										************
+LED					*1	0.04	###
+									sum	2.6675	subsum	0.778
+									pointC	8	sumpointC	8
+
+// --- Part3 Touch
+C1					*1	0.028	###
+Touch				*1	1.05	###
+									sum	1.078	subsum 	3.7455
+									pointA 10	sumpointA	91
+
+
+SMT-91				*1	0.455	###
+DIP pointB-14		*1	0.28	###
+DIP pointC-8		*1	0.24	###
+PCB-MAIN-3K			*1	0.36	###
+PCB-KEY-3K			*1	0.37	###
+PCB-SAMLL			*1	0.05
+
+									sum	1.755	subsum	5.5005
+									sumpointA_MAIN	81	sumpointA_KEY	10
+									sumpointB_MAIN	14	sumpointB_KEY	7/8
