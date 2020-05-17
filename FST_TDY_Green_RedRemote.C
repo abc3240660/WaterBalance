@@ -184,8 +184,8 @@ void    FPPA0 (void)
                             // always_low_cnt=[3,5] = [200us,500us)
                             if (((always_low_cnt>=70)&&(always_low_cnt<=100))&&((always_high_cnt>=35)&&(always_high_cnt<=55))) {
                                 dat_bit_cnt = 0; f_sync_ok = 1; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
-                            } else if ((f_sync_ok)&&((always_high_cnt>=2)&&(always_high_cnt<=7))) {// // 0.56ms L + 0.56ms H -> logic 0
-                                if ((always_low_cnt<2) || (always_low_cnt>7)) {
+                            } else if ((f_sync_ok)&&((always_high_cnt>=2)&&(always_high_cnt<=9))) {// // 0.56ms L + 0.56ms H -> logic 0
+                                if ((always_low_cnt<2) || (always_low_cnt>9)) {
                                     always_high_cnt  = 0;
                                     always_low_cnt = 0;
                                     dat_bit_cnt = 0; f_sync_ok = 0; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
@@ -204,7 +204,7 @@ void    FPPA0 (void)
                                     }
                                 }
                             } else if ((f_sync_ok)&&((always_high_cnt>=14)&&(always_high_cnt<=20))) {// 0.56ms L + 1.65ms H -> logic 1
-                                if ((always_low_cnt<2) || (always_low_cnt>7)) {
+                                if ((always_low_cnt<2) || (always_low_cnt>9)) {
                                     always_high_cnt  = 0;
                                     always_low_cnt = 0;
                                     dat_bit_cnt = 0; f_sync_ok = 0; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
