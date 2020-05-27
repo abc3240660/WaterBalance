@@ -57,7 +57,6 @@ void    FPPA0 (void)
     BYTE    Sys_Flag    =    0;
     BIT        f_W_Key_Trig     :    Sys_Flag.0;
     BIT        t16_10ms         :    Sys_Flag.1;
-    BIT        t16_10ms_rmt     :    Sys_Flag.2;
     BIT        f_V_Key_Trig     :    Sys_Flag.3;
     BIT        f_H_Key_Trig     :    Sys_Flag.4;
     BIT        f_IN_QV2         :    Sys_Flag.5;
@@ -123,7 +122,7 @@ void    FPPA0 (void)
     BYTE    w_disable_cnt  = 0;
     BYTE    h_disable_cnt  = 0;
     BYTE    v_disable_cnt  = 0;
-    BYTE    v2_disable_cnt = 0;
+    BYTE    m_disable_cnt  = 0;
 
 #ifdef USE_10K
     WORD    count    =    112;
@@ -277,14 +276,10 @@ void    FPPA0 (void)
                     f_ev1527_ok = 0;
 
                     if (1 == ev1527_byte4) {// C -> OD
-                        f (!f_W_disable) {
+                        if (!f_W_disable) {
                             if (!f_vj_on) {
                                 f_2k_on = 1;
                             }
-							
-							count_l = 0;
-                            count_h = 0;
-                            flash_time_laser = 40;
 
                             f_W_disable = 1;
                             f_W_Key_Trig = 1;
@@ -308,7 +303,7 @@ void    FPPA0 (void)
                             f_H_Key_Trig = 1;
                         }
                     } else if (2 == ev1527_byte4) {// D -> Change Ratio
-						f (!f_M_disable) {
+						if (!f_M_disable) {
                             if (!f_vj_on) {
                                 f_2k_on = 1;
                             }
@@ -490,10 +485,6 @@ void    FPPA0 (void)
 								if (f_mode2) {// PWM
 									f_mode2 = 0;// DC
 								}
-
-								count_l = 0;
-								count_h = 0;
-								flash_time_laser = 40;
 
                                 f_W_Key_Trig    =    1;                //    so Trigger, when stable at 3000 mS.
                             }

@@ -279,14 +279,10 @@ void    FPPA0 (void)
                     f_ev1527_ok = 0;
 
                     if (1 == ev1527_byte4) {// C -> Disable War						
-						f (!f_W_disable) {
+						if (!f_W_disable) {
                             if (!f_vj_on) {
                                 f_2k_on = 1;
                             }
-							
-							count_l = 0;
-                            count_h = 0;
-                            flash_time_laser = 40;
 
                             f_W_disable = 1;
                             f_W_Key_Trig = 1;
@@ -310,7 +306,7 @@ void    FPPA0 (void)
                             f_H_Key_Trig = 1;
                         }
                     } else if (2 == ev1527_byte4) {// D -> Change Ratio
-						f (!f_M_disable) {
+						if (!f_M_disable) {
                             if (!f_vj_on) {
                                 f_2k_on = 1;
                             }
@@ -494,10 +490,6 @@ void    FPPA0 (void)
 									val2 = 85;
 									f_pwm_mode = 0;// DC
 								}
-
-								count_l = 0;
-								count_h = 0;
-								flash_time_laser = 40;
 
                                 f_W_Key_Trig    =    1;                //    so Trigger, when stable at 4000 mS.
                             }
