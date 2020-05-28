@@ -4,9 +4,9 @@
 #define USE_10K 1
 #define GREEN_PWM 1
 
-BIT        p_InB_M     :    PB.1;
+BIT        p_InB_M     :    PB.0;
 BIT        p_InA_VJ    :    PA.5;
-BIT        p_InB_V     :    PB.0;
+BIT        p_InB_V     :    PB.1;
 BIT        p_InB_H     :    PB.2;
 
 BIT        p_InA_QV2   :    PA.3;
