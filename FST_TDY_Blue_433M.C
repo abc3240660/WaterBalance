@@ -3,10 +3,10 @@
 //#define USE_20K 1
 #define USE_10K 1
 
-BIT            p_InA_OD    :   PA.4;
+BIT            p_InA_V     :   PA.4;
 BIT            p_InA_VJ    :   PA.5;
-BIT            p_InA_V     :   PA.7;
-BIT            p_InB_H     :   PB.1;
+BIT            p_InA_H     :   PA.7;
+BIT            p_InB_M     :   PB.1;
 
 BIT            p_InB_QV2   :   PB.7;
 BIT            p_InB_QV3   :   PB.0;
@@ -29,18 +29,18 @@ void    FPPA0 (void)
     $    p_OutA_V2            Out, Low;
     $    p_OutB_H1            Out, Low;
 
-    $    p_InA_OD             In;
+    $    p_InB_M              In;
     $    p_InA_VJ             In;
     $    p_InA_V              In;
-    $    p_InB_H              In;
+    $    p_InA_H              In;
     $    p_InB_QV2            In;
     $    p_InB_QV3            In;
 	$    p_InB_X1             In;
 	$    p_InA_RF             In;
 
     // IN Pull-UP
-    PAPH        =        _FIELD(p_InA_OD, p_InA_V, p_InA_RF);
-    PBPH        =        _FIELD(p_InB_H, p_InB_QV3, p_InB_X1, p_InB_X1, p_InB_QV2);
+    PAPH        =        _FIELD(p_InA_H, p_InA_V, p_InA_RF);
+    PBPH        =        _FIELD(p_InB_M, p_InB_QV3, p_InB_X1, p_InB_X1, p_InB_QV2);
 
 #ifdef USE_10K
     $ T16M        IHRC, /4, BIT9;                // 256us
@@ -52,7 +52,7 @@ void    FPPA0 (void)
     $ TM2C        IHRC, Disable, Period, Inverse;
 
     BYTE    Key_Flag;
-    Key_Flag            =    _FIELD(p_InA_OD, p_InA_VJ, p_InA_V, p_InB_H, p_InB_QV2, p_InB_QV3);
+    Key_Flag            =    _FIELD(p_InB_M, p_InA_VJ, p_InA_V, p_InA_H, p_InB_QV2, p_InB_QV3);
 
     BYTE    Sys_Flag    =    0;
     BIT        f_W_Key_Trig     :    Sys_Flag.0;
@@ -474,11 +474,11 @@ void    FPPA0 (void)
 
             if (1 == start) {
                 // port change detect(both H->L and L->H)
-                A    =    (PA ^ Key_Flag) & _FIELD(p_InA_OD);    //    only check the bit of p_Key_In.
+                A    =    (PB ^ Key_Flag) & _FIELD(p_InB_M);    //    only check the bit of p_Key_In.
                 if (! ZF)
                 {                                        //    if is not same,
                     // Active: H->L
-                    if (!p_InA_OD) {
+                    if (!p_InB_M) {
                         if (cnt_Key_10ms_1 > 0) {
                             if (--cnt_Key_10ms_1 == 0)
                             {                                    //    and over debounce time.
@@ -506,7 +506,7 @@ void    FPPA0 (void)
                             }
                         }
                     } else {// Up: H->L
-                        Key_flag    ^=    _FIELD(p_InA_OD);
+                        Key_flag    ^=    _FIELD(p_InB_M);
                     }
                 } else {
                     if (cnt_Key_10ms_1 < 170) {
@@ -538,11 +538,11 @@ void    FPPA0 (void)
                     cnt_Key_10ms_3 = 175;
                 }
 
-                A    =    (PB ^ Key_flag) & _FIELD(p_InB_H);    //    only check the bit of p_Key_In.
+                A    =    (PA ^ Key_flag) & _FIELD(p_InA_H);    //    only check the bit of p_Key_In.
                 if (! ZF)
                 {                                        //    if is not same,
                     // Active: H->L
-                    if (!p_InB_H) {
+                    if (!p_InA_H) {
 						if (cnt_Key_10ms_4 > 0) {
 							if (--cnt_Key_10ms_4 == 0) {
 								// do not support long press
@@ -553,7 +553,7 @@ void    FPPA0 (void)
 							}
 						}
                     } else {// Up: H->L
-                        Key_flag    ^=    _FIELD(p_InB_H);
+                        Key_flag    ^=    _FIELD(p_InA_H);
                     }
                 } else {
                     cnt_Key_10ms_4 = 175;
