@@ -396,22 +396,21 @@ void FPPA0 (void)
             }
 
             if (1 == start) {
-                if (f_Key_Trig1) {
-					if (f_H1_on) {
-						f_H1_on = 0;
-						p_OutB_H1 = 0;
-					} else {
-						f_H1_on = 1;
+                if (f_Key_Trig1) {// C
+					if (f_mode2) {
+                        f_mode2 = 0;
+                    } else {
+                        f_mode2 = 1;
+                    }
 
-						if (!f_mode2) {
-							p_OutB_H1    =    1;
-						}
-					}
+                    count_l = 0;
+                    count_h = 0;
+                    flash_time_laser = 40;
 
 					f_2k_on = 1;
                     f_Key_Trig1 = 0;
 				}
-				if (f_Key_Trig2) {
+				if (f_Key_Trig2) {// D
                     if (f_mode2) {
                         f_mode2 = 0;
                     } else {
@@ -425,7 +424,7 @@ void FPPA0 (void)
 					f_2k_on = 1;
                     f_Key_Trig2 = 0;
 				}
-				if (f_Key_Trig3) {
+				if (f_Key_Trig3) {// B
 					if (f_H1_on) {
 						f_H1_on = 0;
 						p_OutB_H1 = 0;
@@ -440,7 +439,7 @@ void FPPA0 (void)
 					f_2k_on = 1;
                     f_Key_Trig3 = 0;
 				}
-				if (f_Key_Trig4) {
+				if (f_Key_Trig4) {// A
 					if (f_H1_on) {
 						f_H1_on = 0;
 						p_OutB_H1 = 0;
