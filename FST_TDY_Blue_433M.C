@@ -3,10 +3,21 @@
 //#define USE_20K 1
 #define USE_10K 1
 
+//#define BS813A 1
+#define BS83A04A 1
+
 BIT            p_InB_V     :   PB.1;
 BIT            p_InA_VJ    :   PA.5;
+
+#ifdef BS83A04A
 BIT            p_InA_H     :   PA.7;
 BIT            p_InA_M     :   PA.4;
+#endif
+
+#ifdef BS813A
+BIT            p_InA_H     :   PA.4;
+BIT            p_InA_M     :   PA.7;
+#endif
 
 BIT            p_InB_QV2   :   PB.7;
 BIT            p_InB_QV3   :   PB.0;
