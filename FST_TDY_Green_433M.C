@@ -187,7 +187,7 @@ void    FPPA0 (void)
                             // always_high_cnt=1->2->3, 3-1=2: [200us,300us)
                             // always_high_cnt=1->2->3->4->5, 5-1=4: [400us,500us)
                             // always_high_cnt=[3,5] = [200us,500us)
-                            if (((always_high_cnt>=2)&&(always_high_cnt<=5))&&((always_low_cnt>=100)&&(always_low_cnt<=131))) {
+                            if (((always_high_cnt>=2)&&(always_high_cnt<=5))&&((always_low_cnt>=90)&&(always_low_cnt<=131))) {
                                 dat_bit_cnt = 0; f_sync_ok = 1; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
                             } else if ((f_sync_ok)&&((always_low_cnt>=8)&&(always_low_cnt<=15))) {
                                 if ((always_high_cnt<2) || (always_high_cnt>5)) {
