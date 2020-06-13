@@ -114,7 +114,9 @@ void    FPPA0 (void)
 	// (256-64)/256 * 64us = 48us
 	// (256-16)/256 * 64us = 60us
 	// (1024-304)/1024 * 256us = 180us
-    WORD    count    =    317;
+    // WORD    count    =    317; // 176.75us -> 179us
+	// WORD    count    =    280;
+	WORD    count    =    290; // 183.5 -> 182us H + 188us L
 #endif
 
     f_mode2 = 0;// default DC
@@ -646,7 +648,7 @@ void    FPPA0 (void)
             if (f_2k_on) {
                 cnt_3s_time_2k++;
                 // ring 120ms
-                if (22 == cnt_3s_time_2k) {
+                if (23 == cnt_3s_time_2k) {
                     f_2k_on = 0;
 					beep_time = 0;
                     cnt_3s_time_2k = 0;
