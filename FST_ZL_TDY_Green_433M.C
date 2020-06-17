@@ -62,6 +62,7 @@ void    FPPA0 (void)
     BIT        f_V_Key_Trig     :    Sys_Flag.3;
     BIT        f_H_Key_Trig     :    Sys_Flag.4;
     BIT        f_IN_QV2         :    Sys_Flag.5;
+    BIT        t16_10ms_rmt     :    Sys_Flag.6;
 
     BYTE    Sys_FlagB    =    0;
     BIT        f_2k_on          :    Sys_FlagB.1;
@@ -74,6 +75,7 @@ void    FPPA0 (void)
     BIT        f_V1_on          :    Sys_FlagC.0;
     BIT        f_V2_on          :    Sys_FlagC.1;
     BIT        f_H1_on          :    Sys_FlagC.2;
+	BIT        f_V2_disable     :    Sys_FlagC.3;
 
     BYTE    Sys_FlagD    =    0;
     BIT        f_sync_ok        :    Sys_FlagD.1;
@@ -125,7 +127,10 @@ void    FPPA0 (void)
     BYTE    w_disable_cnt  = 0;
     BYTE    h_disable_cnt  = 0;
     BYTE    v_disable_cnt  = 0;
+	BYTE    v2_disable_cnt = 0;
     BYTE    m_disable_cnt  = 0;
+    BYTE    od_rm_long_cnt = 0;// remote OD long press
+    BYTE    od_rm_rels_cnt = 20;// remote OD release
 
 	BYTE    val1 = 40;
 	BYTE    val2 = 85;
@@ -147,6 +152,8 @@ void    FPPA0 (void)
             if (--count1 == 0) {
                 count1      =    100;                // 100us * 100 = 10 ms
                 t16_10ms    =    1;
+				t16_10ms_rmt =    1;
+
                 if (f_vj_on) {
                     flash_time_laser--;
 
@@ -281,6 +288,7 @@ void    FPPA0 (void)
                     f_ev1527_ok = 0;
 
                     if (1 == ev1527_byte4) {// C -> Disable War						
+#if 0
 						if (!f_W_disable) {
                             if (!f_vj_on) {
                                 f_2k_on = 1;
@@ -288,6 +296,15 @@ void    FPPA0 (void)
 
                             f_W_disable = 1;
                             f_W_Key_Trig = 1;
+                        }
+#endif
+						if (!f_V2_disable) {
+                            if (!f_vj_on) {
+                                f_2k_on = 1;
+                            }
+
+                            f_V2_disable = 1;
+                            f_V2_Key_Trig = 1;
                         }
                     } else if (8 == ev1527_byte4) {// B -> V
                         if (!f_V_disable) {
@@ -308,6 +325,7 @@ void    FPPA0 (void)
                             f_H_Key_Trig = 1;
                         }
                     } else if (2 == ev1527_byte4) {// D -> Change Ratio
+#if 0
 						if (!f_M_disable) {
                             if (!f_vj_on) {
                                 f_2k_on = 1;
@@ -328,6 +346,54 @@ void    FPPA0 (void)
                             flash_time_laser = 40;
 
                             f_M_disable = 1;
+                        }
+#endif
+                        if (!f_M_disable) {// period = 200ms
+                            f_M_disable = 1;
+
+                            // short press
+							// idle too long(250ms), so not long press
+							// one whole eve1527 period = 45ms~52ms
+                            if (od_rm_rels_cnt > 25) {// 250ms = 4~5 whole ev1527 period
+                                if (f_pwm_mode) {
+									val1 = 40;
+									val2 = 85;
+									f_pwm_mode = 0;
+								} else {
+									val1 = 30;
+									val2 = 75;
+									f_pwm_mode = 1;
+								}
+
+                                count_l = 0;
+                                count_h = 0;
+                                flash_time_laser = 40;
+
+                                if (!f_vj_on) {
+                                    f_2k_on = 1;
+                                }
+                                
+                                od_rm_long_cnt = 1;
+                            } else {
+                                if (od_rm_long_cnt < 200) {
+                                    od_rm_long_cnt++;
+                                }
+
+                                // long press
+                                if (8 == od_rm_long_cnt) {// 1.6s
+                                    f_W_Key_Trig    =    1;                //    so Trigger, when stable at 3000 mS.
+                                }
+                            }
+                        }
+                        
+                        od_rm_rels_cnt = 0;
+                    }
+                } else {
+                    if (t16_10ms_rmt) {// period = 10ms
+                        t16_10ms_rmt = 0;
+
+                        if (od_rm_rels_cnt < 200) {// 2s
+                            od_rm_rels_cnt++;
                         }
                     }
                 }
@@ -403,6 +469,15 @@ void    FPPA0 (void)
                 if (20 == v_disable_cnt) {// 200ms debounce
                     f_V_disable = 0;
                     v_disable_cnt = 0;
+                }
+            }
+			
+			if (f_V2_disable) {
+                v2_disable_cnt++;
+                
+                if (20 == v2_disable_cnt) {// 200ms debounce
+                    f_V2_disable = 0;
+                    v2_disable_cnt = 0;
                 }
             }
 			
