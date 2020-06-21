@@ -475,6 +475,8 @@ void    FPPA0 (void)
 				
 				if (p_InA_X2) {// if Pin7 High, Disable VJ Warning
 					cnt_3s_time_1 = 1;
+				} else {
+					cnt_3s_time_1 = 0;
 				}
 
                 // Normal Mode
