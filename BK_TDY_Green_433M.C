@@ -11,13 +11,13 @@ BIT        p_InB_H     :    PB.2;
 
 BIT        p_InA_QV2   :    PA.3;
 BIT        p_InA_QV3   :    PA.4;
-BIT        p_InB_X1    :    PB.6;
 BIT        p_InA_RF    :    PA.0;
 
 BIT        p_OutB_2K   :    PB.5;
+BIT        p_OutB_H2   :    PB.7;
 BIT        p_OutA_V1   :    PA.7;
 BIT        p_OutA_V2   :    PA.6;
-BIT        p_OutB_H1   :    PB.7;
+BIT        p_OutB_H1   :    PB.6;
 
 void    FPPA0 (void)
 {
@@ -29,6 +29,7 @@ void    FPPA0 (void)
     $    p_OutA_V1            Out, Low;
     $    p_OutA_V2            Out, Low;
     $    p_OutB_H1            Out, Low;
+	$    p_OutB_H2            Out, Low;
 
     $    p_InB_M              In;
     $    p_InA_VJ             In;
@@ -36,12 +37,11 @@ void    FPPA0 (void)
     $    p_InB_H              In;
     $    p_InA_QV2            In;
     $    p_InA_QV3            In;
-    $    p_InB_X1             In;
     $    p_InA_RF             In;
 
     // IN Pull-UP
     PAPH        =        _FIELD(p_InA_RF, p_InA_QV2, p_InA_QV3);
-    PBPH        =        _FIELD(p_InB_M, p_InB_V, p_InB_H, p_InB_X1);
+    PBPH        =        _FIELD(p_InB_M, p_InB_V, p_InB_H);
 
 #ifdef USE_10K
     $ T16M        IHRC, /4, BIT9;                // 256us
@@ -61,6 +61,7 @@ void    FPPA0 (void)
     BIT        f_V_Key_Trig     :    Sys_Flag.3;
     BIT        f_H_Key_Trig     :    Sys_Flag.4;
     BIT        f_IN_QV2         :    Sys_Flag.5;
+	BIT        f_IN_QV3         :    Sys_Flag.5;
 
     BYTE    Sys_FlagB    =    0;
     BIT        f_2k_on          :    Sys_FlagB.1;
@@ -73,6 +74,7 @@ void    FPPA0 (void)
     BIT        f_V1_on          :    Sys_FlagC.0;
     BIT        f_V2_on          :    Sys_FlagC.1;
     BIT        f_H1_on          :    Sys_FlagC.2;
+	BIT        f_H2_on          :    Sys_FlagC.3;
 
     BYTE    Sys_FlagD    =    0;
     BIT        f_sync_ok        :    Sys_FlagD.1;
@@ -339,8 +341,12 @@ void    FPPA0 (void)
 					if (f_V1_on) {
 						p_OutA_V1 = 1;
 					}
+					if (f_H2_on) {
+						p_OutB_H2 = 1;
+					}
 				} else if ((val1 == count_l)&&(0 == count_h)) {
 					p_OutA_V1 = 0;
+					p_OutB_H2 = 0;
 				} else if ((45 == count_l)&&(0 == count_h)) {
 					if (f_V2_on) {
 						p_OutA_V2 = 1;
@@ -365,12 +371,16 @@ void    FPPA0 (void)
                 if (f_V2_on) {
                     p_OutA_V2 = 1;
                 }
+				if (f_H2_on) {
+					p_OutB_H2 = 1;
+				}
             #endif
         } else {
             if (19 == flash_time_laser) {
                 p_OutB_H1 = 0;
                 p_OutA_V1 = 0;
                 p_OutA_V2 = 0;
+				p_OutB_H2 = 0;
             }
         }
 
@@ -426,6 +436,7 @@ void    FPPA0 (void)
 					f_V1_on = 0;
 					f_V2_on = 0;
 					f_H1_on = 1;
+					f_H2_on = 0;
 					stepx = 1;
 					f_2k_on = 1;
 				} else if (70 == cnt_3s_time_startup) {
@@ -464,15 +475,50 @@ void    FPPA0 (void)
 					 }
 				} else if (160 == cnt_3s_time_startup) {
 					if ((3 == stepx) && (0 == start)) {
+						if (p_InA_QV3) {// HIGH
+							f_IN_QV3 = 1;
+						} else {
+							f_IN_QV3 = 1;
+						}
+
+						if (f_IN_QV3) {
+							#ifndef GREEN_PWM
+								p_OutB_H2 = 1;
+							#endif
+
+							f_H2_on = 1;
+
+							stepx = 4;
+							f_2k_on = 1;
+						} else {
+							f_V1_on = 0;
+							f_V2_on = 0;
+
+							p_OutA_V1 = 0;
+							p_OutA_V2 = 0;
+							start = 1;
+							stepx = 1;
+						}
+					}
+				} else if (209 == cnt_3s_time_startup) {
+					if ((4 == stepx) && (0 == start)) {
 						f_V1_on = 0;
 						f_V2_on = 0;
+						f_H2_on = 0;
 
 						p_OutA_V1 = 0;
 						p_OutA_V2 = 0;
+						p_OutB_H2 = 0;
 
 						stepx = 1;
 						stepv = 1;
 						start = 1;
+						
+						if (f_H1_on) {
+							steph = 2;
+						} else {
+							steph = 1;
+						}
 					}
 				}
 			} else {
@@ -635,36 +681,39 @@ void    FPPA0 (void)
 					if (!f_vj_on) {
 						f_2k_on = 1;
 					}
-
+					
                     if (1 == stepv) {
-						#ifndef GREEN_PWM
+                        #ifndef GREEN_PWM
                             p_OutA_V1 = 1;
 						#endif
 
+                        p_OutA_V2 = 0;
+
                         f_V1_on = 1;
+                        f_V2_on = 0;
 
-                        stepv = 2;
+                        stepv= 2;
                     } else if (2 == stepv) {
-                        if (p_InA_QV2) {// HIGH
-                            f_IN_QV2 = 1;
-                        } else {
-                            f_IN_QV2 = 1;
-                        }
+                        p_OutA_V1 = 0;
 
-                        if (f_IN_QV2) {
-							#ifndef GREEN_PWM
-                                p_OutA_V2 = 1;
-							#endif
+						#ifndef GREEN_PWM
+                            p_OutA_V2 = 1;
+                        #endif
 
-                            f_V2_on = 1;
-                            stepv = 3;
-                        } else {
-                            f_V1_on = 0;
-                            p_OutA_V1 = 0;
-
-                            stepv = 1;
-                        }
+                        f_V1_on = 0;
+                        f_V2_on = 1;
+                        stepv = 3;
                     } else if (3 == stepv) {
+                        #ifndef GREEN_PWM
+                            p_OutA_V1 = 1;
+                            p_OutA_V2 = 1;
+                        #endif
+
+                        f_V1_on = 1;
+                        f_V2_on = 1;
+
+                        stepv = 4;
+                    } else if (4 == stepv) {
                         f_V1_on = 0;
                         f_V2_on = 0;
 
@@ -682,32 +731,47 @@ void    FPPA0 (void)
 					if (!f_vj_on) {
 						f_2k_on = 1;
 					}
-                    steph++;
 
                     if (1 == steph) {
-                        if (f_H1_on) {// Current is ON
-                            f_H1_on = 0;
-                            p_OutB_H1 = 0;
-                        } else {// Current is OFF
-                            f_H1_on = 1;
+                        #ifndef GREEN_PWM
+                            p_OutB_H1 = 1;
+                        #endif
 
-							#ifndef GREEN_PWM
-                                p_OutB_H1 = 1;
-                            #endif
-                        }
+						p_OutB_H2 = 0;
+
+                        f_H1_on = 1;
+                        f_H2_on = 0;
+
+                        steph = 2;
                     } else if (2 == steph) {
-                        steph = 0;
+                        p_OutB_H1 = 0;
 
-                        if (f_H1_on) {// Current is ON
-                            f_H1_on = 0;
-                            p_OutB_H1 = 0;
-                        } else {// Current is OFF
-                            f_H1_on = 1;
+						#ifndef GREEN_PWM
+                            p_OutB_H2 = 1;
+                        #endif
 
-							#ifndef GREEN_PWM
-                                p_OutB_H1 = 1;
-                            #endif
-                        }
+                        f_H1_on = 0;
+                        f_H2_on = 1;
+
+                        steph = 3;
+                    } else if (3 == steph) {
+                        #ifndef GREEN_PWM
+                            p_OutB_H1 = 1;
+                            p_OutB_H2 = 1;
+                        #endif
+
+                        f_H1_on = 1;
+                        f_H2_on = 1;
+
+                        steph = 4;
+                    } else if (4 == steph) {
+                        f_H1_on = 0;
+                        f_H2_on = 0;
+
+                        p_OutB_H1 = 0;
+                        p_OutB_H2 = 0;
+
+                        steph = 1;
                     }
                 }
 
