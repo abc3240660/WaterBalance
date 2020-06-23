@@ -10,7 +10,7 @@ BIT        p_InB_V     :    PB.1;
 BIT        p_InB_H     :    PB.2;
 
 BIT        p_InA_QV2   :    PA.3;
-BIT        p_InA_QV3   :    PA.4;
+BIT        p_InA_V2    :    PA.4;
 BIT        p_InB_X1    :    PB.6;
 BIT        p_InA_RF    :    PA.0;
 
@@ -35,12 +35,12 @@ void    FPPA0 (void)
     $    p_InB_V              In;
     $    p_InB_H              In;
     $    p_InA_QV2            In;
-    $    p_InA_QV3            In;
+    $    p_InA_V2             In;
     $    p_InB_X1             In;
     $    p_InA_RF             In;
 
     // IN Pull-UP
-    PAPH        =        _FIELD(p_InA_RF, p_InA_QV2, p_InA_QV3);
+    PAPH        =        _FIELD(p_InA_RF, p_InA_QV2, p_InA_V2);
     PBPH        =        _FIELD(p_InB_M, p_InB_V, p_InB_H, p_InB_X1);
 
 #ifdef USE_10K
@@ -53,7 +53,7 @@ void    FPPA0 (void)
     $ TM2C        IHRC, Disable, Period, Inverse;
 
     BYTE    Key_Flag;
-    Key_Flag            =    _FIELD(p_InB_M, p_InA_VJ, p_InB_V, p_InB_H, p_InA_QV2, p_InA_QV3);
+    Key_Flag            =    _FIELD(p_InB_M, p_InA_VJ, p_InB_V, p_InB_H, p_InA_QV2, p_InA_V2);
 
     BYTE    Sys_Flag    =    0;
     BIT        f_W_Key_Trig     :    Sys_Flag.0;
@@ -603,11 +603,11 @@ void    FPPA0 (void)
                     cnt_Key_10ms_1    =    175;
                 }
 				
-				A    =    (PA ^ Key_flag) & _FIELD(p_InA_QV3);    //    only check the bit of p_Key_In.
+				A    =    (PA ^ Key_flag) & _FIELD(p_InA_V2);    //    only check the bit of p_Key_In.
                 if (! ZF)
                 {                                        //    if is not same,
                     // Active: H->L
-                    if (!p_InA_QV3) {
+                    if (!p_InA_V2) {
 						if (cnt_Key_10ms_2 > 0) {
 							if (--cnt_Key_10ms_2 == 0) {
 								// do not support long press
@@ -618,7 +618,7 @@ void    FPPA0 (void)
 							}
 						}
                     } else {// Up: H->L
-                        Key_flag    ^=    _FIELD(p_InA_QV3);
+                        Key_flag    ^=    _FIELD(p_InA_V2);
                     }
                 } else {
                     cnt_Key_10ms_2 = 175;
