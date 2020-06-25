@@ -60,8 +60,6 @@ void    FPPA0 (void)
     BIT        t16_10ms         :    Sys_Flag.1;
     BIT        f_V_Key_Trig     :    Sys_Flag.3;
     BIT        f_H_Key_Trig     :    Sys_Flag.4;
-    BIT        f_IN_QV2         :    Sys_Flag.5;
-	BIT        f_IN_QV3         :    Sys_Flag.5;
 
     BYTE    Sys_FlagB    =    0;
     BIT        f_2k_on          :    Sys_FlagB.1;
@@ -127,8 +125,8 @@ void    FPPA0 (void)
     BYTE    v_disable_cnt  = 0;
     BYTE    m_disable_cnt  = 0;
 
-	BYTE    val1 = 40;
-	BYTE    val2 = 85;
+	BYTE    val1 = 43;
+	BYTE    val2 = 88;
 
 #ifdef USE_10K
     WORD    count    =    112;
@@ -314,8 +312,8 @@ void    FPPA0 (void)
                             }
 							
 							if (f_pwm_mode) {
-								val1 = 40;
-								val2 = 85;
+								val1 = 43;
+								val2 = 88;
 								f_pwm_mode = 0;
 							} else {
 								val1 = 30;
@@ -442,63 +440,35 @@ void    FPPA0 (void)
 				} else if (70 == cnt_3s_time_startup) {
 					if (1 == stepx) {
 						#ifndef GREEN_PWM
-							p_OutA_V1 = 1;
+							p_OutB_H2 = 1;
 						#endif
 
-						f_V1_on = 1;
+						f_H2_on = 1;
 
 						stepx = 2;
 						f_2k_on = 1;
 					}
 				} else if (115 == cnt_3s_time_startup) {
 					if (2 == stepx) {
-						if (p_InA_QV2) {// HIGH
-							f_IN_QV2 = 1;
-						} else {
-							f_IN_QV2 = 1;
-						}
+						#ifndef GREEN_PWM
+							p_OutA_V1 = 1;
+						#endif
 
-						if (f_IN_QV2) {
-							#ifndef GREEN_PWM
-								p_OutA_V2 = 1;
-							#endif
+						f_V1_on = 1;
 
-							f_V2_on = 1;
-							stepx = 3;
-							f_2k_on = 1;
-						} else {
-							f_V1_on = 0;
-							p_OutA_V1 = 0;
-							start = 1;
-							stepx = 1;
-						}
+						stepx = 3;
+						f_2k_on = 1;
 					 }
 				} else if (160 == cnt_3s_time_startup) {
 					if ((3 == stepx) && (0 == start)) {
-						if (p_InA_QV3) {// HIGH
-							f_IN_QV3 = 1;
-						} else {
-							f_IN_QV3 = 1;
-						}
+						#ifndef GREEN_PWM
+							p_OutA_V2 = 1;
+						#endif
 
-						if (f_IN_QV3) {
-							#ifndef GREEN_PWM
-								p_OutB_H2 = 1;
-							#endif
+						f_V2_on = 1;
 
-							f_H2_on = 1;
-
-							stepx = 4;
-							f_2k_on = 1;
-						} else {
-							f_V1_on = 0;
-							f_V2_on = 0;
-
-							p_OutA_V1 = 0;
-							p_OutA_V2 = 0;
-							start = 1;
-							stepx = 1;
-						}
+						stepx = 4;
+						f_2k_on = 1;
 					}
 				} else if (209 == cnt_3s_time_startup) {
 					if ((4 == stepx) && (0 == start)) {
@@ -532,8 +502,8 @@ void    FPPA0 (void)
                             if (--cnt_Key_10ms_1 == 0)
                             {                                    //    and over debounce time.
 								if (f_pwm_mode) {// PWM
-									val1 = 40;
-									val2 = 85;
+									val1 = 43;
+									val2 = 88;
 									f_pwm_mode = 0;// DC
 								}
 
@@ -542,8 +512,8 @@ void    FPPA0 (void)
 
                             if (cnt_Key_10ms_1 == 170) {
 								if (f_pwm_mode) {
-									val1 = 40;
-									val2 = 85;
+									val1 = 43;
+									val2 = 88;
 									f_pwm_mode = 0;
 								} else {
 									val1 = 30;
