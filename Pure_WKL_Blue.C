@@ -105,6 +105,7 @@ void    FPPA0 (void)
     BYTE    steph = 1;
     BYTE    start = 1;
 	BYTE    beep_time = 0;
+	BYTE	switch_mode	= 0;// 0-Pwr 1-Bias 2-Bias->Pwr
 
 #ifdef USE_10K
 	// (512-112)/512 * 128 = 100us
@@ -124,21 +125,7 @@ void    FPPA0 (void)
 
 	if (p_InA_X2) {// if Pin7 High, Pwr On
 		p_InB_X1 = 1;
-	}
-
-	while (0) {
-		if (INTRQ.T16) {// = 20KHz=50us
-            INTRQ.T16        =    0;
-            stt16    count;
-			
-			if (count1) {
-				count1 = 0;
-				p_OutA_V1 = 1;
-			} else {
-				count1 = 1;
-				p_OutA_V1 = 0;
-			}
-		}
+		switch_mode = 1;
 	}
 
     while (1) {
@@ -257,6 +244,16 @@ void    FPPA0 (void)
         while (t16_10ms)
         {
             t16_10ms    =    0;
+
+			if (1 == switch_mode) {// First : Bias Mode
+				if (!p_InA_X2) {// Later : Bias Mode -> PWR Mode
+					switch_mode = 2;
+				}
+			} else if (2 == switch_mode) {// Last : PWR Mode -> Bias Mode
+				if (p_InA_X2) {
+					p_InB_X1 = 0;// Pwr Off
+				}
+			}
 
             if (cnt_3s_time_startup < 250) {
                 cnt_3s_time_startup++;
@@ -489,6 +486,8 @@ void    FPPA0 (void)
 							f_2k_on = 1;
                             f_vj_on = 1;
                             f_led_flash = 1;
+							
+							flash_time_laser = 20;
                         }
                     } else {
                         if (last_vj_state != 0) {
