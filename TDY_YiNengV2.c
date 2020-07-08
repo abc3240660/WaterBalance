@@ -3,17 +3,17 @@
 //#define USE_20K 1
 #define USE_10K 1
 
-BIT     p_InA_VJ    :   PA.5;// PB.5 -> PA.5
-BIT     p_InB_H     :   PB.7;// PB.2 -> PB.5
-BIT     p_InB_OD    :   PB.6;// PB.1 -> PB.6
-BIT     p_InB_V     :   PB.5;// PA.7 -> PB.7
-BIT     p_InA_RF    :   PA.0;// PA.6 -> PA.0
+BIT     p_InB_H     :   PB.2;
+BIT     p_InB_VJ    :   PB.5;
+BIT     p_InB_OD    :   PB.1;
+BIT     p_InA_V     :   PA.7;
+BIT     p_InA_RF    :   PA.6;
 
-BIT     p_OutA_2K   :   PA.3;// PB.6 -> PA.3
-BIT     p_OutA_V1   :   PA.7;// PA.0 -> PA.7
-BIT     p_OutA_V2   :   PA.4;// OK
-BIT     p_OutA_H1   :   PA.6;// PB.0 -> PA.6
-BIT     p_OutB_H2   :   PB.0;// PA.3 -> PB0.3
+BIT     p_OutB_2K   :   PB.6;
+BIT     p_OutA_V1   :   PA.0;
+BIT     p_OutA_V2   :   PA.4;
+BIT     p_OutB_H1   :   PB.0;
+BIT     p_OutA_H2   :   PA.3;
 
 void FPPA0 (void)
 {
@@ -21,20 +21,20 @@ void FPPA0 (void)
 
     $    EOSCR        DIS_LVD_BANDGAP;
 
-    $    p_OutA_2K            Out, Low;
+    $    p_OutB_2K            Out, Low;
     $    p_OutA_V1            Out, Low;
     $    p_OutA_V2            Out, Low;
-    $    p_OutA_H1            Out, Low;
-    $    p_OutB_H2            Out, Low;
+    $    p_OutB_H1            Out, Low;
+    $    p_OutA_H2            Out, Low;
 
     $    p_InB_H              In;
-    $    p_InA_VJ             In;
+    $    p_InB_VJ             In;
     $    p_InB_OD             In;
-    $    p_InB_V              In;
+    $    p_InA_V              In;
 
     // IN Pull-UP
-    PAPH        =        _FIELD(p_InA_RF);
-    PBPH        =        _FIELD(p_InB_H, p_InB_V, p_InB_OD);
+    PAPH        =        _FIELD(p_InA_V, p_InA_RF);
+    PBPH        =        _FIELD(p_InB_H, p_InB_OD);
 
 #ifdef USE_10K
     $ T16M        IHRC, /4, BIT9;                // 256us
@@ -47,7 +47,7 @@ void FPPA0 (void)
     $ TM2C        IHRC, Disable, Period, Inverse;
 
     BYTE    Key_Flag;
-    Key_Flag            =    _FIELD(p_InB_H, p_InA_VJ, p_InB_OD, p_InB_V);
+    Key_Flag            =    _FIELD(p_InB_H, p_InB_VJ, p_InB_OD, p_InA_V);
 
     BYTE    Sys_Flag    =    0;
     BIT        f_Key_Trig1      :    Sys_Flag.0;
@@ -419,12 +419,12 @@ void FPPA0 (void)
 
         // if vj mode, laser ON 30ms then OFF 220ms
         if (flash_time_laser >= 20) {
-            if ((0 == count_l)&&(0 == count_h)) {
+			if ((0 == count_l)&&(0 == count_h)) {
 				if (f_H1_on) {
-					p_OutA_H1 = 1;
+					p_OutB_H1 = 1;
 				}
 				if (f_H2_on) {
-					p_OutB_H2 = 1;
+					p_OutA_H2 = 1;
 				}
 				if (f_V1_on) {
 					p_OutA_V1 = 1;
@@ -433,8 +433,8 @@ void FPPA0 (void)
 					p_OutA_V2 = 1;
 				}
 			} else if ((val1 == count_l)&&(0 == count_h)) {
-				p_OutA_H1 = 0;
-				p_OutB_H2 = 0;
+				p_OutB_H1 = 0;
+				p_OutA_H2 = 0;
 				p_OutA_V1 = 0;
 				p_OutA_V2 = 0;
 			} else if ((0 == count_l)&&(1 == count_h)) {
@@ -443,8 +443,8 @@ void FPPA0 (void)
 			}
         } else {
             if (19 == flash_time_laser) {
-                p_OutA_H1 = 0;
-                p_OutB_H2 = 0;
+                p_OutB_H1 = 0;
+                p_OutA_H2 = 0;
                 p_OutA_V1 = 0;
                 p_OutA_V2 = 0;
             }
@@ -495,7 +495,7 @@ void FPPA0 (void)
             }
 
             if (65 == cnt_3s_time_startup) {
-                p_OutA_H1    =    1;
+                p_OutB_H1    =    1;
 
                 f_V1_on = 0;
                 f_V2_on = 0;
@@ -522,7 +522,7 @@ void FPPA0 (void)
                  }
             } else if (200 == cnt_3s_time_startup) {
                 if ((3 == stepx) && (0 == start)) {
-                    p_OutB_H2 = 1;
+                    p_OutA_H2 = 1;
 
                     f_H2_on = 1;
 
@@ -537,7 +537,7 @@ void FPPA0 (void)
 
                     p_OutA_V1 = 0;
                     p_OutA_V2 = 0;
-                    p_OutB_H2 = 0;
+                    p_OutA_H2 = 0;
 
                     stepx = 1;
                     stepv = 1;
@@ -608,11 +608,11 @@ void FPPA0 (void)
                     cnt_Key_10ms_1    =    175;
                 }
 
-                A    =    (PB ^ Key_Flag) & _FIELD(p_InB_V);    //    only check the bit of p_Key_In.
+                A    =    (PA ^ Key_Flag) & _FIELD(p_InA_V);    //    only check the bit of p_Key_In.
                 if (! ZF)
                 {                                        //    if is not same,
                     // Active: H->L
-                    if (!p_InB_V) {
+                    if (!p_InA_V) {
                         if (cnt_Key_10ms_3 > 0) {
                             if (--cnt_Key_10ms_3 == 0) {
                                 // do not support long press
@@ -623,7 +623,7 @@ void FPPA0 (void)
                             }
                         }
                     } else {// Up: H->L
-                        Key_flag    ^=    _FIELD(p_InB_V);
+                        Key_flag    ^=    _FIELD(p_InA_V);
                     }
                 } else {
                     cnt_Key_10ms_3 = 175;
@@ -674,7 +674,7 @@ void FPPA0 (void)
                         // Disable 2KHz
                         pwmg0c = 0b0000_0000;// do not output PWM
 
-                        p_OutA_2K    =    0;
+                        p_OutB_2K    =    0;
 #endif
                     }
 #endif
@@ -683,7 +683,7 @@ void FPPA0 (void)
                 // Normal Mode
                 if (0 == cnt_3s_time_1) {
                     // Down: L->H
-                    if (p_InA_VJ) {// special mode
+                    if (p_InB_VJ) {// special mode
                         if (last_vj_state != 1) {
                             last_vj_state = 1;
 
@@ -694,10 +694,10 @@ void FPPA0 (void)
                             pwmgcubl = 0b0000_0000;
                             pwmgcubh = 0b0001_1111;
 
-                            pwmg2dtl = 0b1000_0000;
-                            pwmg2dth = 0b0000_1111;
+                            pwmg1dtl = 0b1000_0000;
+                            pwmg1dth = 0b0000_1111;
 
-                            pwmg2c = 0b0000_0010;// PB6 PWM
+                            pwmg1c = 0b0000_0010;// PB6 PWM
                             pwmgclk = 0b1100_0000;// enable PWMG CLK(=SYSCLK/16)
                         }
                     } else {
@@ -712,7 +712,7 @@ void FPPA0 (void)
                             flash_time_laser = 40;
 
                             // Disable 2KHz
-                            pwmg2c = 0b0000_0000;// do not output PWM
+                            pwmg1c = 0b0000_0000;// do not output PWM
 
 
                         }
@@ -776,24 +776,24 @@ void FPPA0 (void)
                     }
 
                     if (1 == steph) {
-                        p_OutA_H1 = 1;
-                        p_OutB_H2 = 0;
+                        p_OutB_H1 = 1;
+                        p_OutA_H2 = 0;
 
                         f_H1_on = 1;
                         f_H2_on = 0;
 
                         steph = 2;
                     } else if (2 == steph) {
-                        p_OutA_H1 = 0;
-                        p_OutB_H2 = 1;
+                        p_OutB_H1 = 0;
+                        p_OutA_H2 = 1;
 
                         f_H1_on = 0;
                         f_H2_on = 1;
 
                         steph = 3;
                     } else if (3 == steph) {
-                        p_OutA_H1 = 1;
-                        p_OutB_H2 = 1;
+                        p_OutB_H1 = 1;
+                        p_OutA_H2 = 1;
 
                         f_H1_on = 1;
                         f_H2_on = 1;
@@ -803,8 +803,8 @@ void FPPA0 (void)
                         f_H1_on = 0;
                         f_H2_on = 0;
 
-                        p_OutA_H1 = 0;
-                        p_OutB_H2 = 0;
+                        p_OutB_H1 = 0;
+                        p_OutA_H2 = 0;
 
                         steph = 1;
                     }
@@ -841,10 +841,10 @@ void FPPA0 (void)
                     pwmgcubl = 0b0000_0000;
                     pwmgcubh = 0b0001_1111;
 
-                    pwmg2dtl = 0b1000_0000;
-                    pwmg2dth = 0b0000_1111;
+                    pwmg1dtl = 0b1000_0000;
+                    pwmg1dth = 0b0000_1111;
 
-                    pwmg2c = 0b0000_0110;// PB6 PWM
+                    pwmg1c = 0b0000_0010;// PB6 PWM
                     pwmgclk = 0b1100_0000;// enable PWMG CLK(=SYSCLK/16)
                 }
 
@@ -855,8 +855,8 @@ void FPPA0 (void)
                     cnt_3s_time_2k = 0;
 
                     // Disable 2KHz
-                    pwmg2c = 0b0000_0000;// do not output PWM
-                    p_OutA_2K    =    0;
+                    pwmg1c = 0b0000_0000;// do not output PWM
+                    p_OutB_2K    =    0;
                 }
             }
 

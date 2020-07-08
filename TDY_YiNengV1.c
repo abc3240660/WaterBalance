@@ -181,7 +181,7 @@ void FPPA0 (void)
                             // always_high_cnt=1->2->3, 3-1=2: [200us,300us)
                             // always_high_cnt=1->2->3->4->5, 5-1=4: [400us,500us)
                             // always_high_cnt=[3,5] = [200us,500us)
-                            if (((always_high_cnt>=2)&&(always_high_cnt<=5))&&((always_low_cnt>=100)&&(always_low_cnt<=131))) {
+                            if (((always_high_cnt>=2)&&(always_high_cnt<=5))&&((always_low_cnt>=90)&&(always_low_cnt<=131))) {
                                 dat_bit_cnt = 0; f_sync_ok = 1; tmp_byte1 = 0; tmp_byte2 = 0; tmp_byte3 = 0; tmp_byte4 = 0;
                             } else if ((f_sync_ok)&&((always_low_cnt>=8)&&(always_low_cnt<=15))) {
                                 if ((always_high_cnt<2) || (always_high_cnt>5)) {
@@ -272,7 +272,7 @@ void FPPA0 (void)
                 if (f_ev1527_ok) {
                     f_ev1527_ok = 0;
 
-                    if (1 == ev1527_byte4) {// C -> OD
+                    if (ev1527_byte4 <= 2) {// C&D -> OD
                         if (!f_OD_disable) {// period = 200ms
                             f_OD_disable = 1;
 
@@ -334,7 +334,7 @@ void FPPA0 (void)
                             f_H_disable = 1;
                             f_Key_Trig4 = 1;
                         }
-                    } else if (2 == ev1527_byte4) {// D -> X
+                    // } else if (2 == ev1527_byte4) {// D -> X
                     }
                 } else {
                     if (t16_10ms_rmt) {// period = 10ms
