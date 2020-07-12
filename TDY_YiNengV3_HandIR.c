@@ -3,17 +3,19 @@
 //#define USE_20K 1
 #define USE_10K 1
 
-BIT     p_InB_H     :   PB.2;
+BIT     p_InB_H     :   PB.6;// PB.2 -> PB.6
 BIT     p_InB_VJ    :   PB.5;
 BIT     p_InB_OD    :   PB.1;
 BIT     p_InA_V     :   PA.7;
 BIT     p_InA_RF    :   PA.6;
+BIT     p_InA_RF_IR :   PA.5;
 
-BIT     p_OutB_2K   :   PB.6;
+BIT     p_OutB_2K   :   PB.2;// PB.6 -> PB.2
 BIT     p_OutA_V1   :   PA.0;
 BIT     p_OutA_V2   :   PA.4;
 BIT     p_OutB_H1   :   PB.0;
 BIT     p_OutA_H2   :   PA.3;
+BIT     p_OutB_IR   :   PB.7;
 
 void FPPA0 (void)
 {
@@ -26,14 +28,16 @@ void FPPA0 (void)
     $    p_OutA_V2            Out, Low;
     $    p_OutB_H1            Out, Low;
     $    p_OutA_H2            Out, Low;
+	$    p_OutB_IR            Out, Low;
 
     $    p_InB_H              In;
     $    p_InB_VJ             In;
     $    p_InB_OD             In;
     $    p_InA_V              In;
+	$    p_InA_RF_IR          In;
 
     // IN Pull-UP
-    PAPH        =        _FIELD(p_InA_V, p_InA_RF);
+    PAPH        =        _FIELD(p_InA_V, p_InA_RF, p_InA_RF_IR);
     PBPH        =        _FIELD(p_InB_H, p_InB_OD);
 
 #ifdef USE_10K
@@ -55,7 +59,8 @@ void FPPA0 (void)
     BIT        t16_10ms_rmt     :    Sys_Flag.2;
     BIT        f_Key_Trig3      :    Sys_Flag.3;
     BIT        f_Key_Trig4      :    Sys_Flag.4;
-
+	BIT		   f_IR_disable		:	 Sys_Flag.5;
+	
     BYTE    Sys_FlagB    =    0;
     BIT        f_2k_on          :    Sys_FlagB.1;
     BIT        f_led_flash      :    Sys_FlagB.2;
@@ -118,6 +123,7 @@ void FPPA0 (void)
 	BYTE    d_disable_cnt  = 0;
     BYTE    od_rm_long_cnt = 0;// remote OD long press
     BYTE    od_rm_rels_cnt = 20;// remote OD release
+	BYTE    ir_disable_cnt = 0;
 
 	BYTE    val1 = 0;// L
 	BYTE    val2 = 1;// H
@@ -133,6 +139,20 @@ void FPPA0 (void)
 #endif
 
     f_2k_on = 0;
+
+	// Enable pwmg1c to 38KHz
+	// CB = 11001 = 25
+	// Fpwm = 1M / (25+1) = 38.461
+	pwmgcubl = 0b0100_0000;
+	pwmgcubh = 0b0000_0110;
+
+	// DB = 8 + 0*0.5 + 0.5 = 8.5
+	pwmg1dtl = 0b0000_0000;
+	pwmg1dth = 0b0000_0010;
+	
+	pwmg1c = 0b0000_1000;// PB7 PWM
+	// SYSCLK=IHRC/4
+	pwmgclk = 0b1010_0000;// enable PWMG CLK(=SYSCLK/4=IHRC/16=1MHz)
 
     while (1) {
         if (INTRQ.T16) {// = 10KHz=100us
@@ -489,6 +509,15 @@ void FPPA0 (void)
                     d_disable_cnt = 0;
                 }
             }
+			
+			if (f_IR_disable) {
+				ir_disable_cnt++;
+				
+				if (20 == ir_disable_cnt) {// 200ms debounce
+					f_IR_disable = 0;
+					ir_disable_cnt = 0;
+				}
+			}
 
             if (cnt_3s_time_startup < 250) {
                 cnt_3s_time_startup++;
@@ -677,15 +706,13 @@ void FPPA0 (void)
                             f_vj_on = 1;
                             f_led_flash = 1;
 
-                            // Enable PWMG1C to 2KHz
-                            pwmgcubl = 0b0000_0000;
-                            pwmgcubh = 0b0001_1111;
+							// Enable Timer2 PWM to 2KHz
+							tm2ct = 0x0;
+							tm2b = 0b0111_1100;// 124
 
-                            pwmg1dtl = 0b1000_0000;
-                            pwmg1dth = 0b0000_1111;
+							tm2s = 0b000_00111;// 7
 
-                            pwmg1c = 0b0000_0010;// PB6 PWM
-                            pwmgclk = 0b1100_0000;// enable PWMG CLK(=SYSCLK/16)
+							tm2c = 0b0001_0100;// CLK(=IHRC/2) | PB2 | Period | Disable Inverse
                         }
                     } else {
                         if (last_vj_state != 0) {
@@ -698,10 +725,8 @@ void FPPA0 (void)
                             count_h = 0;
                             flash_time_laser = 40;
 
-                            // Disable 2KHz
-                            pwmg1c = 0b0000_0000;// do not output PWM
-
-
+							// Disable Timer2 PWM
+							tm2c = 0b0000_0000;// IHRC | PB2 | Period | Disable Inverse
                         }
                     }
                 } else {
@@ -711,6 +736,17 @@ void FPPA0 (void)
                     last_vj_state = 8;
                     flash_time_laser = 40;
                 }
+
+				if (!p_InA_RF_IR) {
+					if (!f_IR_disable) {
+						if (!f_vj_on) {
+							f_2k_on = 1;
+						}
+
+						f_IR_disable = 1;
+						f_Key_Trig3 = 1;
+					}
+				}
 
                 if (f_Key_Trig3)// CN1/V
                 {
@@ -824,15 +860,13 @@ void FPPA0 (void)
 
             if (f_2k_on) {
                 if (0 == cnt_3s_time_2k) {
-                    // Enable PWMG0C to 2KHz
-                    pwmgcubl = 0b0000_0000;
-                    pwmgcubh = 0b0001_1111;
+                    // Enable Timer2 PWM to 2KHz
+                    tm2ct = 0x0;
+                    tm2b = 0b0111_1100;// 124
 
-                    pwmg1dtl = 0b1000_0000;
-                    pwmg1dth = 0b0000_1111;
+                    tm2s = 0b000_00111;// 7
 
-                    pwmg1c = 0b0000_0010;// PB6 PWM
-                    pwmgclk = 0b1100_0000;// enable PWMG CLK(=SYSCLK/16)
+                    tm2c = 0b0001_0100;// CLK(=IHRC/2) | PB2 | Period | Disable Inverse
                 }
 
                 cnt_3s_time_2k++;
@@ -841,8 +875,8 @@ void FPPA0 (void)
                     f_2k_on = 0;
                     cnt_3s_time_2k = 0;
 
-                    // Disable 2KHz
-                    pwmg1c = 0b0000_0000;// do not output PWM
+					// Disable Timer2 PWM
+					tm2c = 0b0000_0000;// IHRC | PB2 | Period | Disable Inverse
                     p_OutB_2K    =    0;
                 }
             }
