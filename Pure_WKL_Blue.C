@@ -253,6 +253,8 @@ void    FPPA0 (void)
 				if (p_InA_X2) {
 					p_InB_X1 = 0;// Pwr Off
 				}
+			} else {
+				p_InB_X1 = 0;// Pwr Off
 			}
 
             if (cnt_3s_time_startup < 250) {
