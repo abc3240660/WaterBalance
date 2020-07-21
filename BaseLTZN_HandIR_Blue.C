@@ -1,6 +1,6 @@
 #include    "extern.h"
 
-#define OFF_WAR 1
+//#define OFF_WAR 1
 //#define USE_20K 1
 #define USE_10K 1
 
