@@ -489,7 +489,17 @@ void FPPA0 (void)
 						}
 
 						f_IR_disable = 1;
-						f_Key_Trig3 = 1;
+						
+						if (4 == stepv) {
+							f_Key_Trig3 = 1;// V
+							
+							steph = 4;
+							f_Key_Trig4 = 1;// H
+						} else if ((1==stepv) && (1==steph)) {
+							f_Key_Trig4 = 1;// H
+						} else {
+							f_Key_Trig3 = 1;// V
+						}
 					}
 				}
 			}
