@@ -4,9 +4,9 @@
 //#define USE_20K 1
 #define USE_10K 1
 
-BIT     p_InA_H     :   PA.3;// PA.5 -> PA.3
+BIT     p_InA_H     :   PA.4;// PA.5 -> PA.3
 BIT     p_InB_VJ    :   PB.0;// PA.4 -> PB.0
-BIT     p_InA_M     :   PA.4;// PA.6 -> PA.4
+BIT     p_InA_M     :   PA.5;// PA.6 -> PA.4
 BIT     p_InA_V     :   PA.0;// PA.7 -> PA.0
 BIT     p_InB_RF    :   PB.1;// PA.3 -> PB.1
 BIT     p_InB_RF_IR :   PB.6;// PB.7 -> PB.6
@@ -15,7 +15,7 @@ BIT     p_OutB_2K   :   PB.2;
 BIT     p_OutB_V1   :   PA.7;// PB.0 -> PA.7
 BIT     p_OutA_V2   :   PA.6;// PB.1 -> PA.6
 BIT     p_OutB_H1   :   PB.7;// PB.5 -> PB.7
-BIT     p_OutA_H2   :   PA.5;// PA.0 -> PA.5
+BIT     p_OutA_H2   :   PA.3;// PA.0 -> PA.5
 BIT     p_OutB_IR   :   PB.5;// PB.6 -> PB.5
 
 void FPPA0 (void)
