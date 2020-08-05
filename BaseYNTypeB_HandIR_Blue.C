@@ -8,14 +8,14 @@ BIT     p_InA_VJ    :   PA.4;// PB.5 -> PA.4
 BIT     p_InA_M     :   PA.6;// PB.1 -> PA.6
 BIT     p_InA_V     :   PA.7;
 BIT     p_InA_RF    :   PA.3;// PA.6 -> PA.3
-BIT     p_InB_RF_IR :   PB.7;// PA.5 -> PB.7
+BIT     p_InB_RF_IR :   PB.6;// PA.5 -> PB.7
 
 BIT     p_OutB_2K   :   PB.2;
 BIT     p_OutB_V1   :   PB.0;// PA.0 -> PB.0
 BIT     p_OutB_V2   :   PB.1;// PA.4 -> PB.1
 BIT     p_OutB_H1   :   PB.5;// PB.0 -> PB.5
 BIT     p_OutA_H2   :   PA.0;// PA.3 -> PA.0
-BIT     p_OutB_IR   :   PB.6;// PB.7 -> PB.6
+BIT     p_OutB_IR   :   PB.7;// PB.7 -> PB.6
 
 void FPPA0 (void)
 {
@@ -60,7 +60,8 @@ void FPPA0 (void)
     BIT        f_Key_Trig3      :    Sys_Flag.3;
     BIT        f_Key_Trig4      :    Sys_Flag.4;
 	BIT		   f_IR_disable		:	 Sys_Flag.5;
-	
+	BIT        t16_1ms          :    Sys_Flag.6;
+
     BYTE    Sys_FlagB    =    0;
     BIT        f_2k_on          :    Sys_FlagB.1;
     BIT        f_led_flash      :    Sys_FlagB.2;
@@ -83,6 +84,7 @@ void FPPA0 (void)
 //    pmode    Program_Mode;
 //    fppen    =    0xFF;
 
+	BYTE    count0 = 1;// 1ms
     BYTE    count1 = 1;
     BYTE    count_l = 0;
     BYTE    count_h = 0;
@@ -150,7 +152,7 @@ void FPPA0 (void)
 	pwmg1dtl = 0b0000_0000;
 	pwmg1dth = 0b0000_0010;
 	
-	pwmg1c = 0b0000_0010;// PB6 PWM
+	pwmg1c = 0b0000_1000;// PB7 PWM
 	// SYSCLK=IHRC/4
 	pwmgclk = 0b1010_0000;// enable PWMG CLK(=SYSCLK/4=IHRC/16=1MHz)
 
@@ -158,6 +160,11 @@ void FPPA0 (void)
         if (INTRQ.T16) {// = 10KHz=100us
             INTRQ.T16        =    0;
             stt16    count;
+
+			if (--count0 == 0) {
+				count0 = 10;
+				t16_1ms     =    1;
+			}
 
             if (--count1 == 0) {
                 count1       =    100;                // 100us * 100 = 10 ms
@@ -469,6 +476,33 @@ void FPPA0 (void)
                 p_OutB_V2 = 0;
             }
         }
+		
+		if (t16_1ms) {
+			t16_1ms = 0;
+
+			if (1 == start) {
+				if (!p_InB_RF_IR) {
+					if (!f_IR_disable) {
+						if (!f_vj_on) {
+							f_2k_on = 1;
+						}
+
+						f_IR_disable = 1;
+						
+						if (4 == stepv) {
+							f_Key_Trig3 = 1;// V
+							
+							steph = 4;
+							f_Key_Trig4 = 1;// H
+						} else if ((1==stepv) && (1==steph)) {
+							f_Key_Trig4 = 1;// H
+						} else {
+							f_Key_Trig3 = 1;// V
+						}
+					}
+				}
+			}
+		}
 
         while (t16_10ms)
         {
@@ -736,17 +770,6 @@ void FPPA0 (void)
                     last_vj_state = 8;
                     flash_time_laser = 40;
                 }
-
-				if (!p_InB_RF_IR) {
-					if (!f_IR_disable) {
-						if (!f_vj_on) {
-							f_2k_on = 1;
-						}
-
-						f_IR_disable = 1;
-						f_Key_Trig3 = 1;
-					}
-				}
 
                 if (f_Key_Trig3)// CN1/V
                 {
