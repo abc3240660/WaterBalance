@@ -746,7 +746,7 @@ void FPPA0 (void)
 
 							tm2s = 0b000_00111;// 7
 
-							tm2c = 0b0001_0100;// CLK(=IHRC/2) | PB2 | Period | Disable Inverse
+							tm2c = 0b0001_1000;// CLK(=IHRC/2) | PA3 | Period | Disable Inverse
                         }
                     } else {
                         if (last_vj_state != 0) {
