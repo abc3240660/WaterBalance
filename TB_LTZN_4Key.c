@@ -4,11 +4,11 @@
 //#define USE_20K 1
 #define USE_10K 1
 
-BIT     p_InB_H     :   PB.3;
+BIT     p_InB_W     :   PB.3;
 BIT     p_InB_VJ    :   PB.5;
 BIT     p_InB_M     :   PB.4;
-BIT     p_InA_V1    :   PA.3;
-BIT     p_InB_V2    :   PB.7;
+BIT     p_InA_V     :   PA.3;
+BIT     p_InB_H     :   PB.7;
 BIT     p_InA_RF    :   PA.5;
 
 BIT     p_OutA_2K   :   PA.4;
@@ -34,16 +34,16 @@ void FPPA0 (void)
 	$    p_OutB_RST           Out, Low;
 	$    p_OutB_DAT           Out, Low;
 
-    $    p_InB_H              In;
+    $    p_InB_W              In;
     $    p_InB_VJ             In;
     $    p_InB_M              In;
-	$    p_InA_V1             In;
-    $    p_InB_V2             In;
+	$    p_InA_V              In;
+    $    p_InB_H              In;
 	$    p_InA_RF             In;
 
     // IN Pull-UP
-    PAPH        =        _FIELD(p_InA_V1, p_InA_RF);
-    PBPH        =        _FIELD(p_InB_H, p_InB_M, p_InB_V2);
+    PAPH        =        _FIELD(p_InA_V, p_InA_RF);
+    PBPH        =        _FIELD(p_InB_W, p_InB_M, p_InB_H);
 
 #ifdef USE_10K
     $ T16M        IHRC, /4, BIT9;                // 256us
@@ -56,16 +56,16 @@ void FPPA0 (void)
     $ TM2C        IHRC, Disable, Period, Inverse;
 
     BYTE    Key_Flag;
-    Key_Flag            =    _FIELD(p_InB_H, p_InB_VJ, p_InB_M, p_InB_V2);
+    Key_Flag            =    _FIELD(p_InB_W, p_InB_VJ, p_InB_M, p_InB_H);
 
     BYTE    Sys_Flag    =    0;
     BIT        f_M_Key_Trig     :    Sys_Flag.0;
     BIT        t16_10ms         :    Sys_Flag.1;
     BIT        t16_10ms_rmt     :    Sys_Flag.2;
-    BIT        f_V1_Key_Trig    :    Sys_Flag.3;
+    BIT        f_V_Key_Trig     :    Sys_Flag.3;
     BIT        f_H_Key_Trig     :    Sys_Flag.4;
 	BIT        f_M_Enable       :    Sys_Flag.5;
-	BIT        f_V2_Key_Trig    :    Sys_Flag.6;
+	BIT        f_Addr_Saved     :    Sys_Flag.5;
 
     BYTE    Sys_FlagB    =    0;
     BIT        f_2k_on          :    Sys_FlagB.1;
@@ -108,8 +108,7 @@ void FPPA0 (void)
     BYTE    cnt_3s_time_startup = 0;//
 
     BYTE    stepx = 0;
-    BYTE    stepv1 = 1;
-    BYTE    stepv2 = 1;
+    BYTE    stepv = 1;
 	BYTE    steph = 0;
     BYTE    start = 0;
 	BYTE    step_audio = 0;
@@ -117,6 +116,10 @@ void FPPA0 (void)
     BYTE    always_low_cnt = 0;
     BYTE    always_high_cnt = 0;
     BYTE    dat_bit_cnt = 0;
+
+    BYTE    addr_byte1 = 0;
+    BYTE    addr_byte2 = 0;
+    BYTE    addr_byte3 = 0;
 
     BYTE    tmp_byte1 = 0;
     BYTE    tmp_byte2 = 0;
@@ -140,6 +143,7 @@ void FPPA0 (void)
 
 	// 0-DC(100%) 1-80% 2-60% 3-40% 4-20%
 	BYTE	duty_mode = 0;
+	BYTE	duty_mode_last = 0;
 	
 	BYTE	audio_mode = 0;
 
@@ -338,6 +342,18 @@ void FPPA0 (void)
 
                 if (f_ev1527_ok) {
                     f_ev1527_ok = 0;
+					
+					if (!f_Addr_Saved) {
+						addr_byte1 = tmp_byte1;
+						addr_byte2 = tmp_byte2;
+						addr_byte3 = tmp_byte3;
+
+						f_Addr_Saved = 1;
+					} else {
+						if ((addr_byte1!=ev1527_byte1)||(addr_byte2!=ev1527_byte2)||(addr_byte3!=ev1527_byte3)) {
+							ev1527_byte4 = 0;// skip
+						}
+					}
 
                     if (1 == ev1527_byte4) {// C -> OD
                         if (!f_M_disable) {// period = 200ms
@@ -351,27 +367,6 @@ void FPPA0 (void)
 								if (5 == duty_mode) {
 									duty_mode = 0;
 								}
-								
-								if (1 == duty_mode) {
-									val1 = 80;
-									val2 = 0;
-								} else if (2 == duty_mode) {
-									val1 = 60;
-									val2 = 0;
-								} else if (3 == duty_mode) {
-									val1 = 40;
-									val2 = 0;
-								} else if (4 == duty_mode) {
-									val1 = 20;
-									val2 = 0;
-								} else {// 100%
-									val1 = 0;
-									val2 = 1;
-								}
-
-                                count_l = 0;
-                                count_h = 0;
-                                flash_time_laser = 40;
 
                                 if (!f_vj_on) {
                                     f_2k_on = 1;
@@ -390,27 +385,6 @@ void FPPA0 (void)
 									} else {
 										duty_mode--;
 									}
-									
-									if (1 == duty_mode) {
-										val1 = 80;
-										val2 = 0;
-									} else if (2 == duty_mode) {
-										val1 = 60;
-										val2 = 0;
-									} else if (3 == duty_mode) {
-										val1 = 40;
-										val2 = 0;
-									} else if (4 == duty_mode) {
-										val1 = 20;
-										val2 = 0;
-									} else {// 100%
-										val1 = 0;
-										val2 = 1;
-									}
-
-                                    count_l = 0;
-                                    count_h = 0;
-                                    flash_time_laser = 40;
 
                                     f_M_Key_Trig    =    1;                //    so Trigger, when stable at 3000 mS.
                                 }
@@ -425,7 +399,7 @@ void FPPA0 (void)
                             }
 
                             f_V_disable = 1;
-                            f_V1_Key_Trig = 1;
+                            f_V_Key_Trig = 1;
                         }
                     } else if (4 == ev1527_byte4) {// A -> H
                         if (!f_H_disable) {
@@ -448,29 +422,6 @@ void FPPA0 (void)
 							if (5 == duty_mode) {
 								duty_mode = 0;
 							}
-							
-							if (1 == duty_mode) {
-								val1 = 80;
-								val2 = 0;
-							} else if (2 == duty_mode) {
-								val1 = 60;
-								val2 = 0;
-							} else if (3 == duty_mode) {
-								val1 = 40;
-								val2 = 0;
-							} else if (4 == duty_mode) {
-								val1 = 20;
-								val2 = 0;
-							} else {// 100%
-								val1 = 0;
-								val2 = 1;
-							}
-
-                            count_l = 0;
-                            count_h = 0;
-                            flash_time_laser = 40;
-
-                            f_M_Key_Trig    =    1;                //    so Trigger, when stable at 3000 mS.
 						}
                     }
                 } else {
@@ -599,7 +550,7 @@ void FPPA0 (void)
                     p_OutB_H2 = 0;
 
                     stepx = 1;
-                    stepv1 = 1;
+                    stepv = 1;
                     start = 1;
                 }
             }
@@ -639,8 +590,13 @@ void FPPA0 (void)
                 } else {
                     if (cnt_Key_10ms_1 < 170) {
                         if (cnt_Key_10ms_1 != 0) {// Only ShortPress
-                            f_M_Key_Trig    =    1;
-							audio_mode = 1;
+							if (f_M_Enable) {
+								if (duty_mode > 0) {
+									duty_mode--;
+								}
+								
+								audio_mode = 3;
+							}
                         } else {// LongPress release
 						}
                     }
@@ -648,164 +604,85 @@ void FPPA0 (void)
                     cnt_Key_10ms_1    =    175;
                 }
 				
-				A    =    (PA ^ Key_flag) & _FIELD(p_InA_V1);    //    only check the bit of p_Key_In.
+				A    =    (PA ^ Key_flag) & _FIELD(p_InA_V);    //    only check the bit of p_Key_In.
                 if (! ZF)
                 {                                        //    if is not same,
                     // Active: H->L
-                    if (!p_InA_V1) {
+                    if (!p_InA_V) {
                         if (cnt_Key_10ms_2 > 0) {
                             if (--cnt_Key_10ms_2 == 0) {
                                 // do not support long press
                             }
                             
                             if (cnt_Key_10ms_2 == 170) {
-								if (f_M_Enable) {
-									audio_mode = 3;
-
-									if (!f_vj_on) {
-										f_2k_on = 1;
-									}
-
-									if (duty_mode > 0) {
-										duty_mode--;
-									}
-									
-									if (1 == duty_mode) {
-										val1 = 80;
-										val2 = 0;
-									} else if (2 == duty_mode) {
-										val1 = 60;
-										val2 = 0;
-									} else if (3 == duty_mode) {
-										val1 = 40;
-										val2 = 0;
-									} else if (4 == duty_mode) {
-										val1 = 20;
-										val2 = 0;
-									} else {// 100%
-										val1 = 0;
-										val2 = 1;
-									}
-									
-									count_l = 0;
-									count_h = 0;
-									flash_time_laser = 40;
-								} else {
-									f_V1_Key_Trig = 1;
-								}
+								f_V_Key_Trig = 1;
                             }
                         }
                     } else {// Up: H->L
-                        Key_flag    ^=    _FIELD(p_InA_V1);
+                        Key_flag    ^=    _FIELD(p_InA_V);
                     }
                 } else {
                     cnt_Key_10ms_2 = 175;
                 }
 
-                A    =    (PB ^ Key_Flag) & _FIELD(p_InB_V2);    //    only check the bit of p_Key_In.
+                A    =    (PB ^ Key_Flag) & _FIELD(p_InB_H);    //    only check the bit of p_Key_In.
                 if (! ZF)
                 {                                        //    if is not same,
                     // Active: H->L
-                    if (!p_InB_V2) {
+                    if (!p_InB_H) {
                         if (cnt_Key_10ms_3 > 0) {
                             if (--cnt_Key_10ms_3 == 0) {
                                 // do not support long press
                             }
                             
                             if (cnt_Key_10ms_3 == 170) {
-								if (f_M_Enable) {
-									audio_mode = 4;
-
-									if (!f_vj_on) {
-										f_2k_on = 1;
-									}
-
-									if (duty_mode < 4) {
-										duty_mode++;
-									}
-									
-									if (1 == duty_mode) {
-										val1 = 80;
-										val2 = 0;
-									} else if (2 == duty_mode) {
-										val1 = 60;
-										val2 = 0;
-									} else if (3 == duty_mode) {
-										val1 = 40;
-										val2 = 0;
-									} else if (4 == duty_mode) {
-										val1 = 20;
-										val2 = 0;
-									} else {// 100%
-										val1 = 0;
-										val2 = 1;
-									}
-									
-									count_l = 0;
-									count_h = 0;
-									flash_time_laser = 40;
-								} else {
-									f_V2_Key_Trig = 1;
-								}
-                            }
-                        }
-                    } else {// Up: H->L
-                        Key_flag    ^=    _FIELD(p_InB_V2);
-                    }
-                } else {
-                    cnt_Key_10ms_3 = 175;
-                }
-
-                A    =    (PB ^ Key_flag) & _FIELD(p_InB_H);    //    only check the bit of p_Key_In.
-                if (! ZF)
-                {                                        //    if is not same,
-                    // Active: H->L
-                    if (!p_InB_H) {
-                        if (cnt_Key_10ms_4 > 0) {
-                            if (--cnt_Key_10ms_4 == 0) {
-                                // do not support long press
-                            }
-                            
-                            if (cnt_Key_10ms_4 == 170) {
-								if (f_M_Enable) {
-									if (!f_vj_on) {
-										f_2k_on = 1;
-									}
-
-									if (duty_mode > 0) {
-										duty_mode--;
-									}
-									
-									if (1 == duty_mode) {
-										val1 = 80;
-										val2 = 0;
-									} else if (2 == duty_mode) {
-										val1 = 60;
-										val2 = 0;
-									} else if (3 == duty_mode) {
-										val1 = 40;
-										val2 = 0;
-									} else if (4 == duty_mode) {
-										val1 = 20;
-										val2 = 0;
-									} else {// 100%
-										val1 = 0;
-										val2 = 1;
-									}
-									
-									count_l = 0;
-									count_h = 0;
-									flash_time_laser = 40;
-								} else {
-									f_H_Key_Trig = 1;
-								}
+								f_H_Key_Trig = 1;
                             }
                         }
                     } else {// Up: H->L
                         Key_flag    ^=    _FIELD(p_InB_H);
                     }
                 } else {
-                    cnt_Key_10ms_4 = 175;
+                    cnt_Key_10ms_3 = 175;
+                }
+
+                A    =    (PB ^ Key_flag) & _FIELD(p_InB_W);    //    only check the bit of p_Key_In.
+                if (! ZF)
+                {                                        //    if is not same,
+                    // Active: H->L
+                    if (!p_InB_W) {
+                        if (cnt_Key_10ms_4 > 0) {
+                            if (--cnt_Key_10ms_4 == 0)// LongPress
+                            {
+								// do not support long press
+                            }
+
+                            if (cnt_Key_10ms_4 == 170) {
+                                if (!f_vj_on) {
+                                    f_2k_on = 1;
+                                }
+                            }
+                        }
+                    } else {// Up: H->L
+                        Key_flag    ^=    _FIELD(p_InB_W);
+                    }
+                } else {
+                    if (cnt_Key_10ms_4 < 170) {
+                        if (cnt_Key_10ms_4 != 0) {// Only ShortPress
+							if (f_M_Enable) {
+								if (duty_mode < 4) {
+									duty_mode++;
+								}
+								
+								audio_mode = 4;
+							} else {
+								f_M_Key_Trig    =    1;
+							}
+                        } else {// LongPress release
+						}
+                    }
+
+                    cnt_Key_10ms_4    =    175;
                 }
 
                 if (f_M_Key_Trig)
@@ -820,6 +697,31 @@ void FPPA0 (void)
                         f_led_flash = 0;
                     }
                 }
+				
+				if (duty_mode != duty_mode_last) {
+					duty_mode_last = duty_mode;
+					
+					if (1 == duty_mode) {
+						val1 = 80;
+						val2 = 0;
+					} else if (2 == duty_mode) {
+						val1 = 60;
+						val2 = 0;
+					} else if (3 == duty_mode) {
+						val1 = 40;
+						val2 = 0;
+					} else if (4 == duty_mode) {
+						val1 = 20;
+						val2 = 0;
+					} else {// 100%
+						val1 = 0;
+						val2 = 1;
+					}
+					
+					count_l = 0;
+					count_h = 0;
+					flash_time_laser = 40;
+				}
 
                 // Normal Mode
                 if (0 == cnt_3s_time_1) {
@@ -866,63 +768,45 @@ void FPPA0 (void)
                     flash_time_laser = 40;
                 }
 
-                if (f_V1_Key_Trig)// V1
+                if (f_V_Key_Trig)// CN1/V
                 {
-                    f_V1_Key_Trig = 0;
+                    f_V_Key_Trig = 0;
 
                     if (!f_vj_on) {
                         f_2k_on = 1;
                     }
 
-					stepv1++;
-                    if (1 == stepv1) {
-                        if (f_V1_on) {// Current is ON
-                            f_V1_on = 0;
-                            p_OutA_V1 = 0;
-                        } else {// Current is OFF
-                            f_V1_on = 1;
-                            p_OutA_V1 = 1;
-                        }
-                    } else if (2 == stepv1) {
-                        stepv1 = 0;
+                    if (1 == stepv) {
+                        p_OutA_V1 = 1;
+                        p_OutB_V2 = 0;
 
-                        if (f_V1_on) {// Current is ON
-                            f_V1_on = 0;
-                            p_OutA_V1 = 0;
-                        } else {// Current is OFF
-                            f_V1_on = 1;
-                            p_OutA_V1 = 1;
-                        }
-                    }
-                }
+                        f_V1_on = 1;
+                        f_V2_on = 0;
 
-                if (f_V2_Key_Trig)// V2
-                {
-                    f_V2_Key_Trig = 0;
+                        stepv= 2;
+                    } else if (2 == stepv) {
+                        p_OutA_V1 = 0;
+                        p_OutB_V2 = 1;
 
-                    if (!f_vj_on) {
-                        f_2k_on = 1;
-                    }
+                        f_V1_on = 0;
+                        f_V2_on = 1;
+                        stepv = 3;
+                    } else if (3 == stepv) {
+                        p_OutA_V1 = 1;
+                        p_OutB_V2 = 1;
 
-					stepv2++;
-                    if (1 == stepv2) {
-                        if (f_V2_on) {// Current is ON
-                            f_V2_on = 0;
-                            p_OutB_V2 = 0;
-                        } else {// Current is OFF
-                            f_V2_on = 1;
-                            p_OutB_V2 = 1;
-                        }
-                    } else if (2 == stepv2) {
-                        stepv2 = 0;
+                        f_V1_on = 1;
+                        f_V2_on = 1;
 
-                        if (f_V2_on) {// Current is ON
-                            f_V2_on = 0;
-                            p_OutB_V2 = 0;
-                        } else {// Current is OFF
-                            f_V2_on = 1;
-                            p_OutB_V2 = 1;
-                        }
+                        stepv = 4;
+                    } else if (4 == stepv) {
+                        f_V1_on = 0;
+                        f_V2_on = 0;
+
+                        p_OutA_V1 = 0;
+                        p_OutB_V2 = 0;
+
+                        stepv = 1;
                     }
                 }
 
