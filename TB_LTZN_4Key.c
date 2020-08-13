@@ -65,7 +65,7 @@ void FPPA0 (void)
     BIT        f_V_Key_Trig     :    Sys_Flag.3;
     BIT        f_H_Key_Trig     :    Sys_Flag.4;
 	BIT        f_M_Enable       :    Sys_Flag.5;
-	BIT        f_Addr_Saved     :    Sys_Flag.5;
+	BIT        f_Addr_Saved     :    Sys_Flag.6;
 
     BYTE    Sys_FlagB    =    0;
     BIT        f_2k_on          :    Sys_FlagB.1;
