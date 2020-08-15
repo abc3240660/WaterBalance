@@ -4,21 +4,21 @@
 //#define USE_20K 1
 #define USE_10K 1
 
-BIT     p_InB_W     :   PB.3;
-BIT     p_InB_VJ    :   PB.5;
-BIT     p_InB_M     :   PB.4;
-BIT     p_InA_V     :   PA.3;
-BIT     p_InB_H     :   PB.7;
-BIT     p_InA_RF    :   PA.5;
+BIT     p_InB_W     :   PB.3;//
+BIT     p_InB_VJ    :   PB.0;//
+BIT     p_InB_M     :   PB.4;//
+BIT     p_InA_V     :   PA.3;//
+BIT     p_InB_H     :   PB.7;// 
+BIT     p_InA_RF    :   PA.5;//
 
-BIT     p_OutA_2K   :   PA.4;
-BIT     p_OutA_V1   :   PA.7;
+BIT     p_OutA_2K   :   PA.4;//
+BIT     p_OutA_V1   :   PA.7;//
 BIT     p_OutB_V2   :   PB.6;
-BIT     p_OutA_H1   :   PA.6;
+BIT     p_OutA_H1   :   PA.6;//
+BIT     p_OutB_H2   :   PB.5;//
 
-BIT     p_OutB_H2   :   PB.0;// NC
-BIT     p_OutB_DAT  :   PB.1;
-BIT     p_OutB_RST  :   PB.2;
+BIT     p_OutB_DAT  :   PB.1;//
+BIT     p_OutB_RST  :   PB.2;//
 
 void FPPA0 (void)
 {
@@ -541,6 +541,15 @@ void FPPA0 (void)
                  }
             } else if (200 == cnt_3s_time_startup) {
                 if ((3 == stepx) && (0 == start)) {
+                    p_OutB_H2 = 1;
+
+                    f_H2_on = 1;
+
+                    stepx = 4;
+                    f_2k_on = 1;
+                }
+            } else if (249 == cnt_3s_time_startup) {
+                if ((4 == stepx) && (0 == start)) {
                     f_V1_on = 0;
                     f_V2_on = 0;
                     f_H2_on = 0;
@@ -552,6 +561,12 @@ void FPPA0 (void)
                     stepx = 1;
                     stepv = 1;
                     start = 1;
+
+                    if (f_H1_on) {
+                        steph = 2;
+                    } else {
+                        steph = 1;
+                    }
                 }
             }
 
@@ -591,11 +606,10 @@ void FPPA0 (void)
                     if (cnt_Key_10ms_1 < 170) {
                         if (cnt_Key_10ms_1 != 0) {// Only ShortPress
 							if (f_M_Enable) {
-								if (duty_mode > 0) {
-									duty_mode--;
+								if (duty_mode < 4) {
+									duty_mode++;
+									audio_mode = 3;
 								}
-								
-								audio_mode = 3;
 							}
                         } else {// LongPress release
 						}
@@ -670,11 +684,10 @@ void FPPA0 (void)
                     if (cnt_Key_10ms_4 < 170) {
                         if (cnt_Key_10ms_4 != 0) {// Only ShortPress
 							if (f_M_Enable) {
-								if (duty_mode < 4) {
-									duty_mode++;
+								if (duty_mode > 0) {
+									duty_mode--;
+									audio_mode = 4;
 								}
-								
-								audio_mode = 4;
 							} else {
 								f_M_Key_Trig    =    1;
 							}
@@ -817,26 +830,39 @@ void FPPA0 (void)
                     if (!f_vj_on) {
                         f_2k_on = 1;
                     }
-                    steph++;
 
                     if (1 == steph) {
-                        if (f_H1_on) {// Current is ON
-                            f_H1_on = 0;
-                            p_OutA_H1 = 0;
-                        } else {// Current is OFF
-                            f_H1_on = 1;
-                            p_OutA_H1 = 1;
-                        }
-                    } else if (2 == steph) {
-                        steph = 0;
+                        p_OutA_H1 = 1;
+                        p_OutB_H2 = 0;
 
-                        if (f_H1_on) {// Current is ON
-                            f_H1_on = 0;
-                            p_OutA_H1 = 0;
-                        } else {// Current is OFF
-                            f_H1_on = 1;
-                            p_OutA_H1 = 1;
-                        }
+                        f_H1_on = 1;
+                        f_H2_on = 0;
+
+                        steph = 2;
+                    } else if (2 == steph) {
+                        p_OutA_H1 = 0;
+                        p_OutB_H2 = 1;
+
+                        f_H1_on = 0;
+                        f_H2_on = 1;
+
+                        steph = 3;
+                    } else if (3 == steph) {
+                        p_OutA_H1 = 1;
+                        p_OutB_H2 = 1;
+
+                        f_H1_on = 1;
+                        f_H2_on = 1;
+
+                        steph = 4;
+                    } else if (4 == steph) {
+                        f_H1_on = 0;
+                        f_H2_on = 0;
+
+                        p_OutA_H1 = 0;
+                        p_OutB_H2 = 0;
+
+                        steph = 1;
                     }
                 }
 
