@@ -68,6 +68,7 @@ void    FPPA0 (void)
     BIT        f_2k_on          :    Sys_FlagB.1;
     BIT        f_led_flash      :    Sys_FlagB.2;
     BIT        f_led_state      :    Sys_FlagB.3;
+	BIT        f_1st_switch     :    Sys_FlagB.4;
     BIT        f_vj_on          :    Sys_FlagB.5;
 
     BYTE    Sys_FlagC    =    0;
@@ -107,11 +108,11 @@ void    FPPA0 (void)
 
 	BYTE    d_disable_cnt  = 0;
 
-	BYTE    val1 = 46;
-	BYTE    val2 = 81;
+	BYTE    val1 = 43;
+	BYTE    val2 = 78;
 
 	// Switch Value: 10 - 60
-	BYTE	duty_mode = 46;
+	BYTE	duty_mode = 43;
 
 
 #ifdef USE_10K
@@ -357,8 +358,24 @@ void    FPPA0 (void)
 						if (cnt_Key_10ms_1 != 0) {// Only ShortPress
 							if (!f_D_disable) {
 								f_D_disable = 1;
+								
+								if (!f_1st_switch) {
+									duty_mode = 23;
+									f_1st_switch = 1;
+								} else {
+									if (duty_mode < 30) {// 23
+										duty_mode = 33;
+									} else if (33 == duty_mode) {
+										duty_mode = 43;
+									} else if (43 == duty_mode) {
+										duty_mode = 53;
+									} else if ((duty_mode>43) && (duty_mode<=53)) {
+										duty_mode = 63;
+									} else if ((duty_mode>53) && (duty_mode<=63)) {
+										duty_mode = 23;
+									}
+								}
 
-								duty_mode = 46;
 								f_Duty_Switch = 1;
 							}
 						}
@@ -375,37 +392,13 @@ void    FPPA0 (void)
 						if (cnt_Key_10ms_3 > 0) {
 							cnt_Key_10ms_3--;
 
-							if (cnt_Key_10ms_3 == 1) {
-								if (!f_vj_on) {
-									f_2k_on = 1;
-								}
-							} else if (cnt_Key_10ms_3 == 170) {
+							if (cnt_Key_10ms_3 == 170) {
 								if (!f_vj_on) {
 									f_2k_on = 1;
 								}
 							}
 						} else {
-							if (!f_D_disable) {
-								f_D_disable = 1;
-
-								if (duty_mode > 10) {
-									duty_mode--;
-									
-									if (10 == duty_mode) {
-										if (!f_vj_on) {
-											f_2k_on = 1;
-										}
-									}
-									
-									if (duty_mode > 50) {
-										count_2s = 0;
-										count_10ms = 0;
-										f_StartCount = 1;
-									}
-								}
-								
-								f_Duty_Switch = 1;
-							}
+							// do not support long press
 						}
                     } else {// Up: H->L
                         Key_flag    ^=    _FIELD(p_InB_V);
@@ -428,37 +421,13 @@ void    FPPA0 (void)
 						if (cnt_Key_10ms_4 > 0) {
 							cnt_Key_10ms_4--;
 							
-							if (cnt_Key_10ms_4 == 1) {
-								if (!f_vj_on) {
-									f_2k_on = 1;
-								}
-							} else if (cnt_Key_10ms_4 == 170) {
+							if (cnt_Key_10ms_4 == 170) {
 								if (!f_vj_on) {
 									f_2k_on = 1;
 								}
 							}
 						} else {
-							if (!f_D_disable) {
-								f_D_disable = 1;
-
-								if (duty_mode < 60) {
-									duty_mode++;
-									
-									if (60 == duty_mode) {
-										if (!f_vj_on) {
-											f_2k_on = 1;
-										}
-									}
-									
-									if (duty_mode > 50) {
-										count_2s = 0;
-										count_10ms = 0;
-										f_StartCount = 1;
-									}
-								}
-								
-								f_Duty_Switch = 1;
-							}
+							// do not support long press
 						}
                     } else {// Up: H->L
                         Key_flag    ^=    _FIELD(p_InB_H);
