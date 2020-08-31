@@ -68,6 +68,7 @@ void    FPPA0 (void)
     BIT        f_2k_on          :    Sys_FlagB.1;
     BIT        f_led_flash      :    Sys_FlagB.2;
     BIT        f_led_state      :    Sys_FlagB.3;
+	BIT        f_1st_switch     :    Sys_FlagB.4;
     BIT        f_vj_on          :    Sys_FlagB.5;
 
     BYTE    Sys_FlagC    =    0;
@@ -358,7 +359,22 @@ void    FPPA0 (void)
 							if (!f_D_disable) {
 								f_D_disable = 1;
 
-								duty_mode = 39;
+								if (39 == duty_mode) {
+									duty_mode = 25;
+								} else if (25 == duty_mode) {
+									duty_mode = 10;
+								} else if (10 == duty_mode) {
+									duty_mode = 45;
+								} else if ((duty_mode>39) && (duty_mode<=45)) {
+									duty_mode = 39;
+								}
+
+								if (duty_mode > 39) {
+									count_2s = 0;
+									count_10ms = 0;
+									f_StartCount = 1;
+								}
+
 								f_Duty_Switch = 1;
 							}
 						}
@@ -373,35 +389,18 @@ void    FPPA0 (void)
                     // Active: H->L
                     if (!p_InB_V) {
 						if (cnt_Key_10ms_3 > 0) {
-							cnt_Key_10ms_3--;
-
-							if (cnt_Key_10ms_3 == 1) {
-								if (!f_vj_on) {
-									f_2k_on = 1;
-								}
-							} else if (cnt_Key_10ms_3 == 170) {
-								if (!f_vj_on) {
-									f_2k_on = 1;
-								}
+							if (--cnt_Key_10ms_3 == 0) {
+								// do not support long press
 							}
-						} else {
-							if (!f_D_disable) {
-								f_D_disable = 1;
-
-								duty_mode = 20;
-								f_Duty_Switch = 1;
+							
+							if (cnt_Key_10ms_3 == 170) {
+								f_Key_Trig3 = 1;
 							}
 						}
                     } else {// Up: H->L
                         Key_flag    ^=    _FIELD(p_InB_V);
                     }
                 } else {
-					if (cnt_Key_10ms_3 <= 170) {
-						if (cnt_Key_10ms_3 != 0) {// Only ShortPress
-							f_Key_Trig3 = 1;
-						}
-					}
-
                     cnt_Key_10ms_3 = 175;
                 }
 
@@ -411,42 +410,18 @@ void    FPPA0 (void)
                     // Active: H->L
                     if (!p_InB_H) {
 						if (cnt_Key_10ms_4 > 0) {
-							cnt_Key_10ms_4--;
-							
-							if (cnt_Key_10ms_4 == 1) {
-								if (!f_vj_on) {
-									f_2k_on = 1;
-								}
-							} else if (cnt_Key_10ms_4 == 170) {
-								if (!f_vj_on) {
-									f_2k_on = 1;
-								}
+							if (--cnt_Key_10ms_4 == 0) {
+								// do not support long press
 							}
-						} else {
-							if (!f_D_disable) {
-								f_D_disable = 1;
-
-								duty_mode = 45;
-
-								if (duty_mode > 39) {
-									count_2s = 0;
-									count_10ms = 0;
-									f_StartCount = 1;
-								}
-								
-								f_Duty_Switch = 1;
+							
+							if (cnt_Key_10ms_4 == 170) {
+								f_Key_Trig4 = 1;
 							}
 						}
                     } else {// Up: H->L
                         Key_flag    ^=    _FIELD(p_InB_H);
                     }
                 } else {
-					if (cnt_Key_10ms_4 <= 170) {
-						if (cnt_Key_10ms_4 != 0) {// Only ShortPress
-							f_Key_Trig4 = 1;
-						}
-					}
-
                     cnt_Key_10ms_4 = 175;
                 }
 				
@@ -528,11 +503,9 @@ void    FPPA0 (void)
                     p_OutB_LED = 1;
                     f_Key_Trig3 = 0;
 
-#if 0
 					if (!f_vj_on) {
 						f_2k_on = 1;
 					}
-#endif
 
                     if (1 == stepv) {
 						#ifndef GREEN_PWM
@@ -604,11 +577,9 @@ void    FPPA0 (void)
                     p_OutB_LED = 1;
                     f_Key_Trig4 = 0;
 
-#if 0
 					if (!f_vj_on) {
 						f_2k_on = 1;
 					}
-#endif
                     steph++;
 
                     if (1 == steph) {
