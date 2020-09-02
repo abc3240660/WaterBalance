@@ -166,7 +166,7 @@ void    FPPA0 (void)
 				} else if ((val1 == count_l)&&(0 == count_h)) {
 					p_OutB_V1 = 0;
 					p_OutA_V3 = 0;
-				} else if ((35 == count_l)&&(0 == count_h)) {
+				} else if ((50 == count_l)&&(0 == count_h)) {
 					if (f_V2_on) {
 						p_OutA_V2 = 1;
 					}

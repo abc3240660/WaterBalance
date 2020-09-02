@@ -353,7 +353,7 @@ void    FPPA0 (void)
                         Key_flag    ^=    _FIELD(p_InB_OD);
                     }
                 } else {
-                    if (cnt_Key_10ms_1 < 170) {
+                    if (cnt_Key_10ms_1 <= 170) {
 						if (cnt_Key_10ms_1 != 0) {// Only ShortPress
 							if (!f_D_disable) {
 								f_D_disable = 1;
@@ -411,7 +411,7 @@ void    FPPA0 (void)
                         Key_flag    ^=    _FIELD(p_InB_V);
                     }
                 } else {
-					if (cnt_Key_10ms_3 < 170) {
+					if (cnt_Key_10ms_3 <= 170) {
 						if (cnt_Key_10ms_3 != 0) {// Only ShortPress
 							f_Key_Trig3 = 1;
 						}
@@ -464,7 +464,7 @@ void    FPPA0 (void)
                         Key_flag    ^=    _FIELD(p_InB_H);
                     }
                 } else {
-					if (cnt_Key_10ms_4 < 170) {
+					if (cnt_Key_10ms_4 <= 170) {
 						if (cnt_Key_10ms_4 != 0) {// Only ShortPress
 							f_Key_Trig4 = 1;
 						}

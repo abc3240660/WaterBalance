@@ -313,7 +313,7 @@ void    FPPA0 (void)
                         Key_flag    ^=    _FIELD(p_InB_OD);
                     }
                 } else {
-                    if (cnt_Key_10ms_1 < 170) {
+                    if (cnt_Key_10ms_1 <= 170) {
 						if (cnt_Key_10ms_1 != 0) {// Only ShortPress
 							duty_mode++;
 							if (5 == duty_mode) {

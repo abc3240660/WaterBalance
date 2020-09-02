@@ -637,7 +637,7 @@ void FPPA0 (void)
                         Key_flag    ^=    _FIELD(p_InA_M);
                     }
                 } else {
-                    if (cnt_Key_10ms_1 < 170) {
+                    if (cnt_Key_10ms_1 <= 170) {
                         if (cnt_Key_10ms_1 != 0) {// Only ShortPress
 							if (duty_mode != 0) {
 								duty_mode = 0;// any pwm -> DC
