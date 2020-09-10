@@ -4,17 +4,16 @@
 #define USE_10K 1
 #define GREEN_PWM 1
 
-BIT        p_InB_M    :    PB.0;
+BIT        p_InB_M     :    PB.0;
 BIT        p_InA_VJ    :    PA.5;
 BIT        p_InB_V     :    PB.2;
 BIT        p_InB_H     :    PB.1;
-BIT        p_InA_QV2   :    PA.3;
-BIT        p_InA_QV3   :    PA.4;
 
 BIT        p_OutB_2K   :    PB.5;
 BIT        p_OutB_V1   :    PB.7;
 BIT        p_OutA_V2   :    PA.7;
 BIT        p_OutA_V3   :    PA.6;
+BIT        p_OutA_V4   :    PA.4;
 BIT        p_OutB_H1   :    PB.6;
 
 // High is active
@@ -30,15 +29,14 @@ void    FPPA0 (void)
     $    p_OutB_V1            Out, Low;
     $    p_OutA_V2            Out, Low;
     $    p_OutA_V3            Out, Low;
+	$    p_OutA_V4            Out, Low;
     $    p_OutB_H1            Out, Low;
     $    p_OutB_LED           Out, Low;// off
 
-    $    p_InB_M             In;
+    $    p_InB_M              In;
     $    p_InA_VJ             In;
     $    p_InB_V              In;
     $    p_InB_H              In;
-    $    p_InA_QV2            In;
-    $    p_InA_QV3            In;
 
     // IN Pull-UP
     PBPH        =        _FIELD(p_InB_M, p_InB_V, p_InB_H);
@@ -53,12 +51,10 @@ void    FPPA0 (void)
     $ TM2C        IHRC, Disable, Period, Inverse;
 
     BYTE    Key_Flag;
-    Key_Flag            =    _FIELD(p_InB_M, p_InA_VJ, p_InB_V, p_InB_H, p_InA_QV2, p_InA_QV3);
+    Key_Flag            =    _FIELD(p_InB_M, p_InA_VJ, p_InB_V, p_InB_H);
 
     BYTE    Sys_Flag    =    0;
     BIT        t16_10ms         :    Sys_Flag.1;
-    BIT        f_IN_QV2         :    Sys_Flag.5;
-    BIT        f_IN_QV3         :    Sys_Flag.6;
 	BIT        f_StartCount     :    Sys_Flag.7;
 
     BYTE    Sys_FlagB    =    0;
@@ -264,53 +260,24 @@ void    FPPA0 (void)
 					}
 				} else if (115 == cnt_3s_time_startup) {
 					if (2 == stepx) {
-						if (p_InA_QV2) {// HIGH
-							f_IN_QV2 = 1;
-						} else {
-							f_IN_QV2 = 0;
-						}
+						#ifndef GREEN_PWM
+							p_OutA_V2 = 1;
+						#endif
 
-						if (f_IN_QV2) {
-							#ifndef GREEN_PWM
-								p_OutA_V2 = 1;
-							#endif
-
-							f_V2_on = 1;
-							stepx = 3;
-							f_2k_on = 1;
-						} else {
-							f_V1_on = 0;
-							p_OutB_V1 = 0;
-							start = 1;
-							stepx = 1;
-						}
+						f_V2_on = 1;
+						stepx = 3;
+						f_2k_on = 1;
 					 }
 				} else if (160 == cnt_3s_time_startup) {
 					if ((3 == stepx) && (0 == start)) {
-						if (p_InA_QV3) {// HIGH
-							f_IN_QV3 = 1;
-						} else {
-							f_IN_QV3 = 0;
-						}
+						#ifndef GREEN_PWM
+							p_OutA_V3 = 1;
+						#endif
 
-						if (f_IN_QV3) {
-							#ifndef GREEN_PWM
-								p_OutA_V3 = 1;
-							#endif
+						f_V3_on = 1;
 
-							f_V3_on = 1;
-
-							stepx = 4;
-							f_2k_on = 1;
-						} else {
-							f_V1_on = 0;
-							f_V2_on = 0;
-
-							p_OutB_V1 = 0;
-							p_OutA_V2 = 0;
-							start = 1;
-							stepx = 1;
-						}
+						stepx = 4;
+						f_2k_on = 1;
 					}
 				} else if (209 == cnt_3s_time_startup) {
 					if ((4 == stepx) && (0 == start)) {
@@ -530,21 +497,12 @@ void    FPPA0 (void)
 
                     if (cnt_Key_10ms_V4 <= 170) {
 						if (cnt_Key_10ms_V4 != 0) {// Only ShortPress
-#if 1// debug use
-							if (f_V3_on) {// Current is ON
-								f_V3_on = 0;
-								p_OutA_V3 = 0;
-							} else {// Current is OFF
-								f_V3_on = 1;
-								p_OutA_V3 = 1;
-							}
-#endif
 							if (f_V4_on) {// Current is ON
 								f_V4_on = 0;
-								// p_OutA_V4 = 0;
+								p_OutA_V4 = 0;
 							} else {// Current is OFF
 								f_V4_on = 1;
-								// p_OutA_V4 = 1;
+								p_OutA_V4 = 1;
 							}
 						}
                     }
