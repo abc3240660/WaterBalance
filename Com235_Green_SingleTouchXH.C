@@ -39,7 +39,7 @@ void    FPPA0 (void)
     $    p_InB_H              In;
 
     // IN Pull-UP
-    PBPH        =        _FIELD(p_InB_M, p_InB_V, p_InB_H);
+    // PBPH        =        _FIELD(p_InB_M, p_InB_V, p_InB_H);
 
 #ifdef USE_10K
     $ T16M        IHRC, /4, BIT9;                // 256us
@@ -159,9 +159,13 @@ void    FPPA0 (void)
 					if (f_V3_on) {
 						p_OutA_V3 = 1;
 					}
+					if (f_V4_on) {
+						p_OutA_V4 = 1;
+					}
 				} else if ((val1 == count_l)&&(0 == count_h)) {
 					p_OutB_V1 = 0;
 					p_OutA_V3 = 0;
+					p_OutA_V4 = 0;
 				} else if ((mid_val == count_l)&&(0 == count_h)) {
 					if (f_V2_on) {
 						p_OutA_V2 = 1;
@@ -189,6 +193,9 @@ void    FPPA0 (void)
                 if (f_V3_on) {
                     p_OutA_V3 = 1;
                 }
+                if (f_V4_on) {
+                    p_OutA_V4 = 1;
+                }
             #endif
         } else {
             if (19 == flash_time_laser) {
@@ -196,6 +203,7 @@ void    FPPA0 (void)
                 p_OutB_V1 = 0;
                 p_OutA_V2 = 0;
                 p_OutA_V3 = 0;
+				p_OutA_V4 = 0;
             }
         }
 
@@ -232,7 +240,7 @@ void    FPPA0 (void)
             }
 
 			if (0 == start) {
-				if (cnt_3s_time_startup < 210) {
+				if (cnt_3s_time_startup < 250) {
 					cnt_3s_time_startup++;
 				}
 
@@ -245,6 +253,7 @@ void    FPPA0 (void)
 					f_V2_on = 0;
 					f_H1_on = 1;
 					f_V3_on = 0;
+					f_V4_on = 0;
 					stepx = 1;
 					f_2k_on = 1;
 				} else if (70 == cnt_3s_time_startup) {
@@ -279,15 +288,28 @@ void    FPPA0 (void)
 						stepx = 4;
 						f_2k_on = 1;
 					}
-				} else if (209 == cnt_3s_time_startup) {
+				} else if (205 == cnt_3s_time_startup) {
 					if ((4 == stepx) && (0 == start)) {
+						#ifndef GREEN_PWM
+							p_OutA_V4 = 1;
+						#endif
+
+						f_V4_on = 1;
+
+						stepx = 5;
+						f_2k_on = 1;
+					}
+				} else if (249 == cnt_3s_time_startup) {
+					if ((5 == stepx) && (0 == start)) {
 						f_V1_on = 0;
 						f_V2_on = 0;
 						f_V3_on = 0;
+						f_V4_on = 0;
 
 						p_OutB_V1 = 0;
 						p_OutA_V2 = 0;
 						p_OutA_V3 = 0;
+						p_OutA_V4 = 0;
 
 						stepx = 1;
 						stepv = 1;
