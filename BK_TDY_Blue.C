@@ -356,7 +356,7 @@ void FPPA0 (void)
                         }
                         
                         od_rm_rels_cnt = 0;
-                    } else if (8 == ev1527_byte4) {// B -> V
+                    } else if (4 == ev1527_byte4) {// B -> V
                         if (!f_V_disable) {
                             if (!f_vj_on) {
                                 f_2k_on = 1;
@@ -365,7 +365,7 @@ void FPPA0 (void)
                             f_V_disable = 1;
                             f_Key_Trig3 = 1;
                         }
-                    } else if (4 == ev1527_byte4) {// A -> H
+                    } else if (8 == ev1527_byte4) {// A -> H
                         if (!f_H_disable) {
                             if (!f_vj_on) {
                                 f_2k_on = 1;
@@ -419,7 +419,7 @@ void FPPA0 (void)
 
         // if vj mode, laser ON 30ms then OFF 220ms
         if (flash_time_laser >= 20) {
-            if ((0 == count_l)&&(0 == count_h)) {
+			if ((0 == count_l)&&(0 == count_h)) {
 				if (f_H1_on) {
 					p_OutA_H1 = 1;
 				}
@@ -574,12 +574,11 @@ void FPPA0 (void)
                         Key_flag    ^=    _FIELD(p_InB_OD);
                     }
                 } else {
-                    if (cnt_Key_10ms_1 < 170) {
+                    if (cnt_Key_10ms_1 <= 170) {
                         if (cnt_Key_10ms_1 != 0) {// Only ShortPress
-							if (duty_mode != 0) {
-								duty_mode = 0;// any pwm -> DC
-							} else {
-								duty_mode = 2;// DC -> 60%
+							duty_mode++;
+							if (5 == duty_mode) {
+								duty_mode = 0;
 							}
 							
 							if (1 == duty_mode) {
@@ -665,19 +664,6 @@ void FPPA0 (void)
                         cnt_3s_time_1 = 0;
                         f_led_flash = 0;
                     }
-#if 0
-                    if (!f_led_flash) {
-                        f_led_flash = 1;
-                    } else {
-                        f_led_flash = 0;
-#if 0
-                        // Disable 2KHz
-                        pwmg0c = 0b0000_0000;// do not output PWM
-
-                        p_OutA_2K    =    0;
-#endif
-                    }
-#endif
                 }
 
                 // Normal Mode
