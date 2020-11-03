@@ -63,6 +63,7 @@ void    FPPA0 (void)
     BIT        f_H_Key_Trig     :    Sys_Flag.4;
     BIT        f_IN_QV2         :    Sys_Flag.5;
     BIT        t16_10ms_rmt     :    Sys_Flag.6;
+	BIT        f_Addr_Saved     :    Sys_Flag.7;
 
     BYTE    Sys_FlagB    =    0;
     BIT        f_2k_on          :    Sys_FlagB.1;
@@ -114,6 +115,10 @@ void    FPPA0 (void)
     BYTE    always_high_cnt = 0;
     BYTE    always_low_cnt = 0;
     BYTE    dat_bit_cnt = 0;
+
+	BYTE    addr_byte1 = 0;
+    BYTE    addr_byte2 = 0;
+    BYTE    addr_byte3 = 0;
 
     BYTE    tmp_byte1 = 0;
     BYTE    tmp_byte2 = 0;
@@ -286,6 +291,18 @@ void    FPPA0 (void)
 
                 if (f_ev1527_ok) {
                     f_ev1527_ok = 0;
+
+					if (!f_Addr_Saved) {
+						addr_byte1 = tmp_byte1;
+						addr_byte2 = tmp_byte2;
+						addr_byte3 = tmp_byte3;
+
+						f_Addr_Saved = 1;
+					} else {
+						if ((addr_byte1!=ev1527_byte1)||(addr_byte2!=ev1527_byte2)||(addr_byte3!=ev1527_byte3)) {
+							ev1527_byte4 = 0;// skip
+						}
+					}
 
                     if (1 == ev1527_byte4) {// C -> Disable War						
 #if 0
@@ -491,11 +508,11 @@ void    FPPA0 (void)
             }
 
 			if (0 == start) {
-				if (cnt_3s_time_startup < 210) {
+				if (cnt_3s_time_startup < 96) {
 					cnt_3s_time_startup++;
 				}
 
-				if (25 == cnt_3s_time_startup) {
+				if (5 == cnt_3s_time_startup) {
 					#ifndef GREEN_PWM
 						p_OutB_H1    =    1;
 					#endif
@@ -505,7 +522,7 @@ void    FPPA0 (void)
 					f_H1_on = 1;
 					stepx = 1;
 					f_2k_on = 1;
-				} else if (70 == cnt_3s_time_startup) {
+				} else if (35 == cnt_3s_time_startup) {
 					if (1 == stepx) {
 						#ifndef GREEN_PWM
 							p_OutA_V1 = 1;
@@ -516,7 +533,7 @@ void    FPPA0 (void)
 						stepx = 2;
 						f_2k_on = 1;
 					}
-				} else if (115 == cnt_3s_time_startup) {
+				} else if (65 == cnt_3s_time_startup) {
 					if (2 == stepx) {
 						if (p_InA_QV2) {// HIGH
 							f_IN_QV2 = 1;
@@ -539,7 +556,7 @@ void    FPPA0 (void)
 							stepx = 1;
 						}
 					 }
-				} else if (160 == cnt_3s_time_startup) {
+				} else if (95 == cnt_3s_time_startup) {
 					if ((3 == stepx) && (0 == start)) {
 						f_V1_on = 0;
 						f_V2_on = 0;
@@ -562,30 +579,10 @@ void    FPPA0 (void)
                         if (cnt_Key_10ms_1 > 0) {
                             if (--cnt_Key_10ms_1 == 0)
                             {                                    //    and over debounce time.
-								if (f_pwm_mode) {// PWM
-									val1 = 40;
-									val2 = 85;
-									f_pwm_mode = 0;// DC
-								}
-
                                 f_W_Key_Trig    =    1;                //    so Trigger, when stable at 4000 mS.
                             }
 
                             if (cnt_Key_10ms_1 == 170) {
-								if (f_pwm_mode) {
-									val1 = 40;
-									val2 = 85;
-									f_pwm_mode = 0;
-								} else {
-									val1 = 30;
-									val2 = 75;
-									f_pwm_mode = 1;
-								}
-
-								count_l = 0;
-								count_h = 0;
-								flash_time_laser = 40;
-
 								if (!f_vj_on) {
 									f_2k_on = 1;
 								}
@@ -595,8 +592,21 @@ void    FPPA0 (void)
                         Key_flag    ^=    _FIELD(p_InA_M);
                     }
                 } else {
-                    if (cnt_Key_10ms_1 < 170) {
+                    if (cnt_Key_10ms_1 <= 170) {
 						if (cnt_Key_10ms_1 != 0) {// Only ShortPress
+							if (f_pwm_mode) {
+								val1 = 40;
+								val2 = 85;
+								f_pwm_mode = 0;
+							} else {
+								val1 = 30;
+								val2 = 75;
+								f_pwm_mode = 1;
+							}
+
+							count_l = 0;
+							count_h = 0;
+							flash_time_laser = 40;
 						}
                     }
 
