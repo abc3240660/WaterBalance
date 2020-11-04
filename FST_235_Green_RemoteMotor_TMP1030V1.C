@@ -381,7 +381,7 @@ void    FPPA0 (void)
                     } else if (8 == ev1527_byte4) {// B -> V
                         if (!f_V_disable) {
                             if (!f_vj_on) {
-                                //f_2k_on = 1;
+                                f_2k_on = 1;
                             }
 
                             f_V_disable = 1;
@@ -390,7 +390,7 @@ void    FPPA0 (void)
                     } else if (4 == ev1527_byte4) {// A -> H
                         if (!f_H_disable) {
                             if (!f_vj_on) {
-                                //f_2k_on = 1;
+                                f_2k_on = 1;
                             }
 
                             f_H_disable = 1;
@@ -500,7 +500,8 @@ void    FPPA0 (void)
 
         while (t16_10ms) {
             t16_10ms    =    0;
-			
+
+#if 1// speed down all-run
 			if (f_Key_Trig5) {
 				if (f_moto_pwm_sw) {
 					p_OutA_MTA = 0;
@@ -524,7 +525,7 @@ void    FPPA0 (void)
 					}
 				}
 			}
-
+#endif
 			if (f_StartCount) {
 				count_10ms++;
 				if (200 == count_10ms) {// 10ms * 200 = 2s
@@ -663,12 +664,12 @@ void    FPPA0 (void)
                         if (cnt_Key_10ms_1 > 0) {
                             if (--cnt_Key_10ms_1 == 0)
                             {                                    //    and over debounce time.
-                                //f_Key_Trig1    =    1;                //    so Trigger, when stable at 4000 mS.
+                                f_Key_Trig1    =    1;                //    so Trigger, when stable at 4000 mS.
                             }
 
                             if (cnt_Key_10ms_1 == 170) {
 								if (!f_vj_on) {
-								//	f_2k_on = 1;
+									f_2k_on = 1;
 								}
                             }
                         }
@@ -716,7 +717,7 @@ void    FPPA0 (void)
 							}
 							
 							if (cnt_Key_10ms_3 == 170) {
-								//f_Key_Trig3 = 1;
+								f_Key_Trig3 = 1;
 							}
 						}
                     } else {// Up: H->L
@@ -737,7 +738,7 @@ void    FPPA0 (void)
 							}
 							
 							if (cnt_Key_10ms_4 == 170) {
-								//f_Key_Trig4 = 1;
+								f_Key_Trig4 = 1;
 							}
 						}
                     } else {// Up: H->L
