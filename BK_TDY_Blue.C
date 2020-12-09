@@ -277,7 +277,7 @@ void FPPA0 (void)
                 if (f_ev1527_ok) {
                     f_ev1527_ok = 0;
 
-                    if (1 == ev1527_byte4) {// C -> OD
+                    if (2 == ev1527_byte4) {// C -> OD
                         if (!f_M_disable) {// period = 200ms
                             f_M_disable = 1;
 
@@ -374,7 +374,7 @@ void FPPA0 (void)
                             f_H_disable = 1;
                             f_Key_Trig4 = 1;
                         }
-                    } else if (2 == ev1527_byte4) {// D -> X
+                    } else if (1 == ev1527_byte4) {// D -> X
 						if (!f_D_disable) {
 							if (!f_vj_on) {
 								f_2k_on = 1;
