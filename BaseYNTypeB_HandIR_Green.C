@@ -62,7 +62,7 @@ void FPPA0 (void)
     BIT        f_Key_Trig4      :    Sys_Flag.4;
 	BIT		   f_IR_disable		:	 Sys_Flag.5;
 	BIT        t16_1ms          :    Sys_Flag.6;
-	BIT        f_StartCount     :    Sys_Flag.7;
+	BIT        f_Addr_Saved     :    Sys_Flag.7;
 
     BYTE    Sys_FlagB    =    0;
 	BIT        f_Duty_Switch    :    Sys_FlagB.0;
@@ -112,6 +112,10 @@ void FPPA0 (void)
     BYTE    always_low_cnt = 0;
     BYTE    always_high_cnt = 0;
     BYTE    dat_bit_cnt = 0;
+
+	BYTE    addr_byte1 = 0;
+    BYTE    addr_byte2 = 0;
+    BYTE    addr_byte3 = 0;
 
     BYTE    tmp_byte1 = 0;
     BYTE    tmp_byte2 = 0;
@@ -310,6 +314,18 @@ void FPPA0 (void)
 
                 if (f_ev1527_ok) {
                     f_ev1527_ok = 0;
+
+					if (!f_Addr_Saved) {
+						addr_byte1 = tmp_byte1;
+						addr_byte2 = tmp_byte2;
+						addr_byte3 = tmp_byte3;
+
+						f_Addr_Saved = 1;
+					} else {
+						if ((addr_byte1!=ev1527_byte1)||(addr_byte2!=ev1527_byte2)||(addr_byte3!=ev1527_byte3)) {
+							ev1527_byte4 = 0;// skip
+						}
+					}
 
                     if (2 == ev1527_byte4) {// C -> OD
                         if (!f_M_disable) {// period = 200ms
