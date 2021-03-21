@@ -55,7 +55,7 @@ void    FPPA0 (void)
     $ TM2C        IHRC, Disable, Period, Inverse;
 
     BYTE    Key_Flag;
-    Key_Flag            =    _FIELD(p_InA_M, p_InA_VJ, p_InB_V, p_InB_H, p_InA_QV2, p_InB_QV3);
+    Key_Flag            =    _FIELD(p_InA_M, p_InA_VJ, p_InB_V, p_InB_H);
 
     BYTE    Sys_Flag    =    0;
     BIT        f_Key_Trig1      :    Sys_Flag.0;
@@ -143,7 +143,7 @@ void    FPPA0 (void)
 	BYTE    val2 = 1;// H
 
 	// 0-DC(100%) 1-20% 2-40% 3-60% 4-80%
-	BYTE	duty_mode = 0;
+	BYTE	duty_mode = 100;
 	
 #ifdef USE_10K
     WORD    count    =    112;
@@ -308,90 +308,27 @@ void    FPPA0 (void)
 						}
 					}
 
-					// 433Ò£¿ØÆ÷¶ÔÓ¦¹ØÏµ£º
+					// 433é¥æŽ§å™¨å¯¹åº”å…³ç³»ï¼š
 					// A(H) B(V) C(M) D(X)
-					//  4  	 8    1    2 : Ð¡½ð¸Õ
-					//  8    4    2(M) 1 : Èý¼ü
-                    if (3 == ev1527_byte4) {// C -> OD
+					//  4  	 8    1    2 : å°é‡‘åˆš
+					//  8    4    2(M) 1 : ä¸‰é”®
+                    if (2 == ev1527_byte4) {// C' -> OD
                         if (!f_M_disable) {// period = 200ms
                             f_M_disable = 1;
 
-                            // short press
-							// idle too long(250ms), so not long press
-							// one whole eve1527 period = 45ms~52ms
-                            if (od_rm_rels_cnt > 25) {// 250ms = 4~5 whole ev1527 period
-								duty_mode++;
-								if (5 == duty_mode) {
-									duty_mode = 0;
-								}
-								
-								if (1 == duty_mode) {
-									val1 = 80;
-									val2 = 0;
-								} else if (2 == duty_mode) {
-									val1 = 60;
-									val2 = 0;
-								} else if (3 == duty_mode) {
-									val1 = 40;
-									val2 = 0;
-								} else if (4 == duty_mode) {
-									val1 = 20;
-									val2 = 0;
-								} else {// 100%
-									val1 = 0;
-									val2 = 1;
-								}
+							if (duty_mode < 100) {
+								duty_mode += 10;
 
-                                count_l = 0;
-                                count_h = 0;
-                                flash_time_laser = 40;
+								if (!f_vj_on) {
+									f_2k_on = 1;
+								}	
 
-                                if (!f_vj_on) {
-                                    f_2k_on = 1;
-                                }
-                                
-                                od_rm_long_cnt = 1;
-                            } else {
-                                if (od_rm_long_cnt < 200) {
-                                    od_rm_long_cnt++;
-                                }
-
-                                // long press
-                                if (8 == od_rm_long_cnt) {// 1.6s
-									if (0 == duty_mode) {
-										duty_mode = 4;
-									} else {
-										duty_mode--;
-									}
-									
-									if (1 == duty_mode) {
-										val1 = 80;
-										val2 = 0;
-									} else if (2 == duty_mode) {
-										val1 = 60;
-										val2 = 0;
-									} else if (3 == duty_mode) {
-										val1 = 40;
-										val2 = 0;
-									} else if (4 == duty_mode) {
-										val1 = 20;
-										val2 = 0;
-									} else {// 100%
-										val1 = 0;
-										val2 = 1;
-									}
-
-                                    count_l = 0;
-                                    count_h = 0;
-                                    flash_time_laser = 40;
-
-                                    f_Key_Trig1    =    1;                //    so Trigger, when stable at 3000 mS.
-                                }
-                            }
+								f_Duty_Switch = 1;
+							}
                         }
                         
                         od_rm_rels_cnt = 0;
-                    } else if (4 == ev1527_byte4) {// B -> V
+                    } else if (4 == ev1527_byte4) {// B' -> V
                         if (!f_V_disable) {
                             if (!f_vj_on) {
                                 f_2k_on = 1;
@@ -400,7 +337,7 @@ void    FPPA0 (void)
                             f_V_disable = 1;
                             f_Key_Trig3 = 1;
                         }
-                    } else if (8 == ev1527_byte4) {// A -> H
+                    } else if (8 == ev1527_byte4) {// A' -> H
                         if (!f_H_disable) {
                             if (!f_vj_on) {
                                 f_2k_on = 1;
@@ -409,36 +346,18 @@ void    FPPA0 (void)
                             f_H_disable = 1;
                             f_Key_Trig4 = 1;
                         }
-                    } else if (ev1527_byte4 <= 2) {// D -> X
-						if (ev1527_byte4 >= 1) {
-							if (!f_D_disable) {
+                    } else if (1 == ev1527_byte4) {// D' -> X
+						if (!f_D_disable) {
+							f_D_disable = 1;
+							
+							if (duty_mode > 10) {
+								duty_mode -= 10;
+
 								if (!f_vj_on) {
 									f_2k_on = 1;
 								}
 
-								f_D_disable = 1;
-
-								duty_mode++;
-								if (5 == duty_mode) {
-									duty_mode = 0;
-								}
-								
-								if (1 == duty_mode) {
-									val1 = 80;
-									val2 = 0;
-								} else if (2 == duty_mode) {
-									val1 = 60;
-									val2 = 0;
-								} else if (3 == duty_mode) {
-									val1 = 40;
-									val2 = 0;
-								} else if (4 == duty_mode) {
-									val1 = 20;
-									val2 = 0;
-								} else {// 100%
-									val1 = 0;
-									val2 = 1;
-								}
+								f_Duty_Switch = 1;
 							}
 						}
                     }
@@ -634,33 +553,14 @@ void    FPPA0 (void)
                     }
                 } else {
                     if (cnt_Key_10ms_1 <= 170) {
-						if (cnt_Key_10ms_1 != 0) {// Only ShortPress							
-							duty_mode++;
-							
-							if (duty_mode >= 5) {
-								duty_mode  = 0;
+						if (cnt_Key_10ms_1 != 0) {// Only ShortPress
+							if (duty_mode != 100) {
+								duty_mode = 100;
+							} else {
+								duty_mode = 60;
 							}
 
-							if (1 == duty_mode) {
-								val1 = 20;
-								val2 = 0;
-							} else if (2 == duty_mode) {
-								val1 = 40;
-								val2 = 0;
-							} else if (3 == duty_mode) {
-								val1 = 60;
-								val2 = 0;
-							} else if (4 == duty_mode) {
-								val1 = 80;
-								val2 = 0;
-							} else {// 100%
-								val1 = 0;
-								val2 = 1;
-							}
-							
-							count_l = 0;
-							count_h = 0;
-							flash_time_laser = 40;
+							f_Duty_Switch = 1;
 						}
                     }
 
@@ -675,6 +575,20 @@ void    FPPA0 (void)
 						if (cnt_Key_10ms_3 > 0) {
 							if (--cnt_Key_10ms_3 == 0) {
 								// do not support long press
+							}
+						} else {
+							if (!f_D_disable) {
+								f_D_disable = 1;
+
+								if (duty_mode > 10) {
+									duty_mode -= 10;
+
+									if (!f_vj_on) {
+										f_2k_on = 1;
+									}	
+
+									f_Duty_Switch = 1;
+								}
 							}
 						}
                     } else {// Up: H->L
@@ -699,6 +613,20 @@ void    FPPA0 (void)
 							if (--cnt_Key_10ms_4 == 0) {
 								// do not support long press
 							}
+						} else {
+							if (!f_D_disable) {
+								f_D_disable = 1;
+
+								if (duty_mode < 100) {
+									duty_mode += 10;
+
+									if (!f_vj_on) {
+										f_2k_on = 1;
+									}
+
+									f_Duty_Switch = 1;
+								}
+							}
 						}
                     } else {// Up: H->L
                         Key_flag    ^=    _FIELD(p_InB_H);
@@ -709,8 +637,25 @@ void    FPPA0 (void)
 							f_Key_Trig4 = 1;
 						}
 					}
+
                     cnt_Key_10ms_4 = 175;
                 }
+
+				if (f_Duty_Switch) {
+					f_Duty_Switch = 0;
+					
+					if (100 == duty_mode) {
+						val1 = 0;
+						val2 = 1;
+					} else {
+						val1 = duty_mode;
+						val2 = 0;
+					}
+
+					count_l = 0;
+					count_h = 0;
+					flash_time_laser = 40;
+				}
 
                 if (f_Key_Trig1)
                 {
